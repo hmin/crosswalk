@@ -29,6 +29,8 @@
     'sources': [
       'test/base/cameo_test_suite.cc',
       'test/base/cameo_test_suite.h',
+      'test/base/in_process_browser_test.cc',
+      'test/base/in_process_browser_test.h'
     ],
     'conditions': [
       ['toolkit_uses_gtk == 1', {
@@ -50,12 +52,15 @@
     'type': 'executable',
     'dependencies': [
       'test_support_common',
+      '../testing/gtest.gyp:gtest',
     ],
     'include_dirs' : [
       '..',
     ],
     'sources': [
-      'test/base/run_all_unittests.cc',
+      'src/common/shell_content_client_unittest.cc',
+      'test/base/cameo_test_launcher.cc',
+#'test/base/run_all_unittests.cc',
     ], 
   }], # cameo_tests target
 }
