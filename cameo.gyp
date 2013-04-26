@@ -12,8 +12,11 @@
       }, {
        'use_custom_freetype%': 0,
       }],
-    ],
+    ], # conditions
   },
+  'includes' : [
+    'cameo_tests.gypi',
+  ],
   'targets': [
     {
       'target_name': 'cameo_lib',
