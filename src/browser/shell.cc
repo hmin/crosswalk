@@ -19,6 +19,7 @@
 #include "cameo/src/browser/shell_content_browser_client.h"
 #include "cameo/src/browser/shell_devtools_frontend.h"
 #include "cameo/src/browser/shell_javascript_dialog_manager.h"
+#include "cameo/src/browser/shell_registry.h"
 #include "cameo/src/common/shell_switches.h"
 #include "content/public/browser/devtools_manager.h"
 #include "content/public/browser/navigation_entry.h"
@@ -36,11 +37,6 @@ static const int kDefaultWindowWidth = 800;
 static const int kDefaultWindowHeight = 600;
 
 namespace cameo {
-
-std::vector<Shell*> Shell::windows_;
-base::Callback<void(Shell* shell)> Shell::shell_created_callback_;
-
-bool Shell::quit_message_loop_ = true;
 
 Shell::Shell(content::WebContents* web_contents)
     : devtools_frontend_(NULL),
@@ -61,25 +57,16 @@ Shell::Shell(content::WebContents* web_contents)
       this,
       content::NOTIFICATION_WEB_CONTENTS_TITLE_UPDATED,
       content::Source<content::WebContents>(web_contents));
-  windows_.push_back(this);
 
-  if (!shell_created_callback_.is_null()) {
-    shell_created_callback_.Run(this);
-    shell_created_callback_.Reset();
-  }
+  ShellRegistry::Get()->AddShell(this);
 }
 
 Shell::~Shell() {
   PlatformCleanUp();
 
-  for (size_t i = 0; i < windows_.size(); ++i) {
-    if (windows_[i] == this) {
-      windows_.erase(windows_.begin() + i);
-      break;
-    }
-  }
+  ShellRegistry::Get()->RemoveShell(this);
 
-  if (windows_.empty() && quit_message_loop_)
+  if (ShellRegistry::Get()->shells().empty())
     MessageLoop::current()->PostTask(FROM_HERE, MessageLoop::QuitClosure());
 }
 
@@ -96,31 +83,6 @@ Shell* Shell::CreateShell(content::WebContents* web_contents) {
   shell->PlatformResizeSubViews();
 
   return shell;
-}
-
-void Shell::CloseAllWindows() {
-  base::AutoReset<bool> auto_reset(&quit_message_loop_, false);
-  content::DevToolsManager::GetInstance()->CloseAllClientHosts();
-  std::vector<Shell*> open_windows(windows_);
-  for (size_t i = 0; i < open_windows.size(); ++i)
-    open_windows[i]->Close();
-  MessageLoop::current()->RunUntilIdle();
-}
-
-void Shell::SetShellCreatedCallback(
-    base::Callback<void(Shell* shell)> shell_created_callback) {
-  DCHECK(shell_created_callback_.is_null());
-  shell_created_callback_ = shell_created_callback;
-}
-
-Shell* Shell::FromRenderViewHost(content::RenderViewHost* rvh) {
-  for (size_t i = 0; i < windows_.size(); ++i) {
-    if (windows_[i]->web_contents() &&
-        windows_[i]->web_contents()->GetRenderViewHost() == rvh) {
-      return windows_[i];
-    }
-  }
-  return NULL;
 }
 
 // static

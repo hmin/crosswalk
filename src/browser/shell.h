@@ -84,22 +84,6 @@ class Shell : public content::WebContentsDelegate,
                                 int routing_id,
                                 const gfx::Size& initial_size);
 
-  // Returns the Shell object corresponding to the given RenderViewHost.
-  static Shell* FromRenderViewHost(content::RenderViewHost* rvh);
-
-  // Returns the currently open windows.
-  static std::vector<Shell*>& windows() { return windows_; }
-
-  // Closes all windows and returns. This runs a message loop.
-  static void CloseAllWindows();
-
-  // Closes all windows and exits.
-  static void PlatformExit();
-
-  // Used for content_browsertests. Called once.
-  static void SetShellCreatedCallback(
-      base::Callback<void(Shell* shell)> shell_created_callback);
-
   content::WebContents* web_contents() const { return web_contents_.get(); }
 
 #if !defined(OS_WIN)
@@ -269,16 +253,6 @@ class Shell : public content::WebContentsDelegate,
 
   // Show chrome or not.
   bool headless_;
-
-  // A container of all the open windows. We use a vector so we can keep track
-  // of ordering.
-  static std::vector<Shell*> windows_;
-
-  static base::Callback<void(Shell* shell)> shell_created_callback_;
-
-  // True if the destructur of Shell should post a quit closure on the current
-  // message loop if the destructed Shell object was the last one.
-  static bool quit_message_loop_;
 };
 
 }  // namespace content

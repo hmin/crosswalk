@@ -26,13 +26,6 @@ HINSTANCE Shell::instance_handle_;
 void Shell::PlatformInitialize(const gfx::Size& default_window_size) {
 }
 
-void Shell::PlatformExit() {
-  std::vector<Shell*> windows = windows_;
-  for (std::vector<Shell*>::iterator it = windows.begin();
-       it != windows.end(); ++it)
-    (*it)->window_->Close();
-}
-
 void Shell::PlatformCleanUp() {
   // When the window is destroyed, tell the Edit field to forget about us,
   // otherwise we will crash.

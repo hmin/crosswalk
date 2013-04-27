@@ -103,6 +103,8 @@
         'src/browser/shell_network_delegate.h',
         'src/browser/shell_quota_permission_context.cc',
         'src/browser/shell_quota_permission_context.h',
+        'src/browser/shell_registry.cc',
+        'src/browser/shell_registry.h',
         'src/browser/shell_resource_dispatcher_host_delegate.cc',
         'src/browser/shell_resource_dispatcher_host_delegate.h',
         'src/browser/shell_url_request_context_getter.cc',

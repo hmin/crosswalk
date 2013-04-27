@@ -21,6 +21,7 @@ namespace cameo {
 
 class ShellBrowserContext;
 class ShellDevToolsDelegate;
+class ShellRegistry;
 
 class ShellBrowserMainParts : public content::BrowserMainParts {
  public:
@@ -52,6 +53,8 @@ class ShellBrowserMainParts : public content::BrowserMainParts {
   bool run_message_loop_;
 
   ShellDevToolsDelegate* devtools_delegate_;
+
+  scoped_ptr<ShellRegistry> shell_registry_;
 
   DISALLOW_COPY_AND_ASSIGN(ShellBrowserMainParts);
 };

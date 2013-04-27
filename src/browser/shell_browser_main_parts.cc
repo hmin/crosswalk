@@ -16,6 +16,7 @@
 #include "cameo/src/browser/shell.h"
 #include "cameo/src/browser/shell_browser_context.h"
 #include "cameo/src/browser/shell_devtools_delegate.h"
+#include "cameo/src/browser/shell_registry.h"
 #include "cameo/src/common/shell_switches.h"
 #include "cc/base/switches.h"
 #include "content/public/common/content_switches.h"
@@ -107,6 +108,7 @@ void ShellBrowserMainParts::PreEarlyInitialization() {
 void ShellBrowserMainParts::PreMainMessageLoopRun() {
   browser_context_.reset(new ShellBrowserContext(false));
   off_the_record_browser_context_.reset(new ShellBrowserContext(true));
+  shell_registry_.reset(new ShellRegistry);
 
   Shell::Initialize();
   net::NetModule::SetResourceProvider(PlatformResourceProvider);
