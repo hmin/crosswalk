@@ -80,7 +80,8 @@ void ShellDevToolsFrontend::WebContentsDestroyed(
     content::WebContents* web_contents) {
   content::DevToolsManager::GetInstance()->ClientHostClosing(
       frontend_host_.get());
-  inspected_shell_->CloseDevTools();
+  if (inspected_shell_)
+    inspected_shell_->CloseDevTools();
   delete this;
 }
 
