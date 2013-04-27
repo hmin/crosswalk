@@ -128,7 +128,7 @@ class InProcessBrowserTest : public content::BrowserTestBase {
  private:
 
   // Quits all open shells and waits until there are no more shells.
-  void QuitAllRunningShells();
+  void QuitAllShells();
 
   // Prepare command line that will be used to launch the child browser process
   // with an in-process test.

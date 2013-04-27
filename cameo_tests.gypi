@@ -66,12 +66,18 @@
     'type': 'executable',
     'dependencies': [
       'test_support_common',
+      '../skia/skia.gyp:skia',
       '../testing/gtest.gyp:gtest',
+      '../testing/gmock.gyp:gmock',
     ],
-    'include_dirs' : [
+    'include_dirs': [
       '..',
     ],
+    'defines': [
+      'HAS_OUT_OF_PROC_TEST_RUNNER',
+    ],
     'sources': [
+      'src/browser/shell_browser_main_browsertest.cc',
       'test/base/cameo_test_launcher.cc',
       'test/base/in_process_browser_test.cc',
       'test/base/in_process_browser_test.h',

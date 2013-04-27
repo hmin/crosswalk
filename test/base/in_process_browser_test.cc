@@ -13,6 +13,8 @@
 #include "base/path_service.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/test/test_file_util.h"
+#include "cameo/src/browser/shell.h"
+#include "cameo/src/browser/shell_registry.h"
 #include "cameo/src/renderer/shell_content_renderer_client.h"
 #include "cameo/test/base/cameo_test_suite.h"
 #include "cameo/test/base/test_launcher_utils.h"
@@ -28,10 +30,10 @@
 #include "net/test/test_server.h"
 #include "ui/compositor/compositor_switches.h"
 
-namespace {
+using cameo::ShellVector;
+using cameo::ShellRegistry;
 
-// Passed as value of kTestType.
-const char kBrowserTestType[] = "browser";
+namespace {
 
 // Used when running in single-process mode.
 base::LazyInstance<cameo::ShellContentRendererClient>::Leaky
@@ -41,8 +43,7 @@ base::LazyInstance<cameo::ShellContentRendererClient>::Leaky
 
 InProcessBrowserTest::InProcessBrowserTest()
     : shell_(NULL),
-      exit_when_last_shell_closes_(true)
-    {
+      exit_when_last_shell_closes_(true) {
   CreateTestServer(base::FilePath(FILE_PATH_LITERAL("cameo/test/data")));
 }
 
@@ -105,6 +106,14 @@ void InProcessBrowserTest::RunTestOnMainThreadLoop() {
   // Pump startup related events.
   content::RunAllPendingInMessageLoop();
 
+  const ShellVector& shells = ShellRegistry::Get()->shells();
+  if (!shells.empty()) {
+    shell_ = shells.at(0);
+    content::WaitForLoadStop(shell_->web_contents());
+  }
+
+  content::RunAllPendingInMessageLoop();
+
   SetUpOnMainThread();
 
   if (!HasFatalFailure())
@@ -119,8 +128,13 @@ void InProcessBrowserTest::RunTestOnMainThreadLoop() {
   // will not be possible to post Quit tasks.
   content::RunAllPendingInMessageLoop();
 
-  QuitAllRunningShells();
+  QuitAllShells();
 }
 
-void InProcessBrowserTest::QuitAllRunningShells() {
+void InProcessBrowserTest::QuitAllShells() {
+  const ShellVector& shells = ShellRegistry::Get()->shells();
+  for (ShellVector::const_iterator it = shells.begin();
+       it != shells.end(); ++it)
+    (*it)->Close();
+  content::RunAllPendingInMessageLoop();
 }
