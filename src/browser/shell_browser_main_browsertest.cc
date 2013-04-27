@@ -29,6 +29,7 @@
 using cameo::Shell;
 using cameo::ShellRegistry;
 using cameo::ShellVector;
+using testing::_;
 
 // A mock observer to listen shell registry changes.
 class MockShellRegistryObserver : public cameo::ShellRegistryObserver {
@@ -43,8 +44,8 @@ class MockShellRegistryObserver : public cameo::ShellRegistryObserver {
   }
   virtual ~MockShellRegistryObserver() {}
 
-  MOCK_METHOD1(OnShellAdded, void(Shell* shell));
-  MOCK_METHOD1(OnShellRemoved, void(Shell* shell));
+  MOCK_METHOD1(OnShellAdded, void(Shell*));
+  MOCK_METHOD1(OnShellRemoved, void(Shell*));
 
   Shell* WaitForSingleNewShell() {
     notification_observer_.Wait();
@@ -76,107 +77,40 @@ class CameoBrowserMainTest : public InProcessBrowserTest {
   }
 };
 
-// Make sure that the second invocation creates a new window.
-IN_PROC_BROWSER_TEST_F(CameoBrowserMainTest, SecondLaunch) {
+// FIXME(hmin): Since the browser process is not shared by multiple launch,
+// this test is disabled to avoid floody launches.
+IN_PROC_BROWSER_TEST_F(CameoBrowserMainTest, DISABLED_SecondLaunch) {
   MockShellRegistryObserver observer;
-  cameo::ShellRegistry::Get()->AddObserver(&observer);
+  ShellRegistry::Get()->AddObserver(&observer);
   Relaunch(GetCommandLineForRelaunch());
 
-  Shell* new_shell = observer.WaitForSingleNewShell();
-  EXPECT_TRUE(new_shell);
-  EXPECT_CALL(observer, OnShellAdded(new_shell)).Times(1);
+  Shell* second_shell = NULL;
+  EXPECT_TRUE(second_shell = observer.WaitForSingleNewShell());
+  EXPECT_CALL(observer, OnShellAdded(second_shell)).Times(1);
   ASSERT_EQ(2u, ShellRegistry::Get()->shells().size());
+
+  ShellRegistry::Get()->RemoveObserver(&observer);
 }
 
-#if 0
-IN_PROC_BROWSER_TEST_F(CameoBrowserMainTest,
-                       ReuseBrowserInstanceWhenOpeningFile) {
-  base::FilePath test_file_path = ui_test_utils::GetTestFilePath(
-      base::FilePath(), base::FilePath().AppendASCII("empty.html"));
-  CommandLine new_command_line(GetCommandLineForRelaunch());
-  new_command_line.AppendArgPath(test_file_path);
-  content::WindowedNotificationObserver observer(
-        chrome::NOTIFICATION_TAB_ADDED,
-        content::NotificationService::AllSources());
-  Relaunch(new_command_line);
-  observer.Wait();
+IN_PROC_BROWSER_TEST_F(CameoBrowserMainTest, ShowAndCloseDevTools) {
+  MockShellRegistryObserver observer;
+  cameo::ShellRegistry::Get()->AddObserver(&observer);
 
-  GURL url = net::FilePathToFileURL(test_file_path);
-  content::WebContents* tab =
-      browser()->tab_strip_model()->GetActiveWebContents();
-  ASSERT_EQ(url, tab->GetController().GetActiveEntry()->GetVirtualURL());
+  // A default Shell instance is created at startup time.
+  size_t len = ShellRegistry::Get()->shells().size();
+  EXPECT_EQ(1u, len);
+
+  // Show devtools will create a new Shell instance.
+  EXPECT_CALL(observer, OnShellAdded(_)).Times(1);
+  shell()->ShowDevTools();
+  content::RunAllPendingInMessageLoop();
+  EXPECT_EQ(len + 1u, ShellRegistry::Get()->shells().size());
+
+  // On closing devtools, the Shell will also be removed.
+  EXPECT_CALL(observer, OnShellRemoved(_)).Times(1);
+  shell()->CloseDevTools();
+  content::RunAllPendingInMessageLoop();
+  EXPECT_EQ(len, ShellRegistry::Get()->shells().size());
+
+  ShellRegistry::Get()->RemoveObserver(&observer);
 }
-
-// CameoBrowserMainTest.SecondLaunchWithIncognitoUrl is flaky on Win and Linux.
-// http://crbug.com/130395
-#if defined(OS_WIN) || defined(OS_LINUX)
-#define MAYBE_SecondLaunchWithIncognitoUrl DISABLED_SecondLaunchWithIncognitoUrl
-#else
-#define MAYBE_SecondLaunchWithIncognitoUrl SecondLaunchWithIncognitoUrl
-#endif
-
-IN_PROC_BROWSER_TEST_F(CameoBrowserMainTest, MAYBE_SecondLaunchWithIncognitoUrl) {
-  // We should start with one normal window.
-  ASSERT_EQ(1u, chrome::GetTabbedBrowserCount(browser()->profile(),
-                                              browser()->host_desktop_type()));
-
-  // Run with --incognito switch and an URL specified.
-  base::FilePath test_file_path = ui_test_utils::GetTestFilePath(
-      base::FilePath(), base::FilePath().AppendASCII("empty.html"));
-  CommandLine new_command_line(GetCommandLineForRelaunch());
-  new_command_line.AppendSwitch(switches::kIncognito);
-  new_command_line.AppendArgPath(test_file_path);
-
-  Relaunch(new_command_line);
-
-  // There should be one normal and one incognito window now.
-  ui_test_utils::BrowserAddedObserver observer;
-  Relaunch(new_command_line);
-  observer.WaitForSingleNewBrowser();
-  ASSERT_EQ(2u, chrome::GetTotalBrowserCount());
-
-  ASSERT_EQ(1u, chrome::GetTabbedBrowserCount(browser()->profile(),
-                                              browser()->host_desktop_type()));
-}
-
-IN_PROC_BROWSER_TEST_F(CameoBrowserMainTest, SecondLaunchFromIncognitoWithNormalUrl) {
-  // We should start with one normal window.
-  ASSERT_EQ(1u, chrome::GetTabbedBrowserCount(browser()->profile(),
-                                              browser()->host_desktop_type()));
-
-  // Create an incognito window.
-  chrome::NewIncognitoWindow(browser());
-
-  ASSERT_EQ(2u, chrome::GetTotalBrowserCount());
-  ASSERT_EQ(1u, chrome::GetTabbedBrowserCount(browser()->profile(),
-                                              browser()->host_desktop_type()));
-
-  // Close the first window.
-  Profile* profile = browser()->profile();
-  chrome::HostDesktopType host_desktop_type = browser()->host_desktop_type();
-  content::WindowedNotificationObserver observer(
-        chrome::NOTIFICATION_BROWSER_CLOSED,
-        content::NotificationService::AllSources());
-  chrome::CloseWindow(browser());
-  observer.Wait();
-
-  // There should only be the incognito window open now.
-  ASSERT_EQ(1u, chrome::GetTotalBrowserCount());
-  ASSERT_EQ(0u, chrome::GetTabbedBrowserCount(profile, host_desktop_type));
-
-  // Run with just an URL specified, no --incognito switch.
-  base::FilePath test_file_path = ui_test_utils::GetTestFilePath(
-      base::FilePath(), base::FilePath().AppendASCII("empty.html"));
-  CommandLine new_command_line(GetCommandLineForRelaunch());
-  new_command_line.AppendArgPath(test_file_path);
-  content::WindowedNotificationObserver tab_observer(
-        chrome::NOTIFICATION_TAB_ADDED,
-        content::NotificationService::AllSources());
-  Relaunch(new_command_line);
-  tab_observer.Wait();
-
-  // There should be one normal and one incognito window now.
-  ASSERT_EQ(2u, chrome::GetTotalBrowserCount());
-  ASSERT_EQ(1u, chrome::GetTabbedBrowserCount(profile, host_desktop_type));
-}
-#endif  // if 0

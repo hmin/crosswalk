@@ -66,7 +66,7 @@ void ShellRegistry::RemoveShell(Shell* shell) {
 Shell* ShellRegistry::GetShellFromRenderViewHost(
     RenderViewHost* render_view_host) {
   for (ShellVector::iterator it = shell_vector_.begin();
-      it != shell_vector_.end(); ++it) {
+       it != shell_vector_.end(); ++it) {
     if ((*it)->web_contents()->GetRenderViewHost() == render_view_host)
       return (*it);
   }
@@ -74,12 +74,20 @@ Shell* ShellRegistry::GetShellFromRenderViewHost(
 }
 
 void ShellRegistry::CloseAll() {
+  ShellVector cached_shells;
+
   ShellVector::iterator it = shell_vector_.begin();
   for(; it != shell_vector_.end(); ++it) {
-    (*it)->Close();
+    cached_shells.push_back(*it);
   }
-  // No need to clear shell vector since each Shell will delete itself in
-  // its Close method.
+
+  for (it = cached_shells.begin(); it != cached_shells.end(); ++it)
+    (*it)->Close();
+
+  // If a Shell is closed, it will be deleted by itself and also be removed
+  // from ShellRegistry. The shell vector should be empty after all Shells are
+  // closed.
+  DCHECK(shell_vector_.size() == 0);
 }
 
 }  // namespace cameo

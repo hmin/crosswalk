@@ -132,9 +132,6 @@ void InProcessBrowserTest::RunTestOnMainThreadLoop() {
 }
 
 void InProcessBrowserTest::QuitAllShells() {
-  const ShellVector& shells = ShellRegistry::Get()->shells();
-  for (ShellVector::const_iterator it = shells.begin();
-       it != shells.end(); ++it)
-    (*it)->Close();
+  ShellRegistry::Get()->CloseAll();
   content::RunAllPendingInMessageLoop();
 }
