@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import org.xwalk.core.XWalkView;
+import org.xwalk.core.XWalkDebuggerClient;
 
 /**
  * The implementation class for XWalkCoreProvider. It calls the interfaces provided
@@ -80,5 +81,25 @@ class XWalkCoreProvider implements XWalkRuntimeViewProvider {
     @Override
     public View getView() {
         return mXwalkView;
+    }
+
+    @Override
+    public boolean attachDebugger(XWalkDebuggerClient client) {
+        return mXwalkView.attachDebugger(client);
+    }
+
+    @Override
+    public boolean isDebuggerAttached() {
+        return mXwalkView.isDebuggerAttached();
+    }
+
+    @Override
+    public void sendDebuggerMessage(String message) {
+        mXwalkView.sendDebuggerMessage(message);
+    }
+
+    @Override
+    public void detachDebugger() {
+        mXwalkView.detachDebugger();
     }
 }

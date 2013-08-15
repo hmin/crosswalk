@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 
+import org.xwalk.core.XWalkDebuggerClient;
 /**
  * The interface to provide the bridge between XWalkRuntimeView and the
  * real implementation.
@@ -23,4 +24,9 @@ interface XWalkRuntimeViewProvider {
     public void onActivityResult(int requestCode, int resultCode, Intent data);
     public String enableRemoteDebugging(String frontEndUrl, String socketName);
     public void disableRemoteDebugging();
+
+    public boolean attachDebugger(XWalkDebuggerClient client);
+    public void sendDebuggerMessage(String message);
+    public boolean isDebuggerAttached();
+    public void detachDebugger();
 }

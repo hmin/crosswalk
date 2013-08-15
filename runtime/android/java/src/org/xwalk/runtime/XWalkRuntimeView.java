@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
+import org.xwalk.core.XWalkDebuggerClient;
+
 /**
  * This class is to provide public APIs which are called by web application
  * APKs. Since the runtime is shared as a library APK, web application APKs
@@ -141,5 +143,33 @@ public class XWalkRuntimeView extends FrameLayout {
      */
     public void disableRemoteDebugging() {
         mProvider.disableRemoteDebugging();
+    }
+
+    /**
+     * Attach a debugger to this RuntimeView.
+     */
+    public boolean attachDebugger(XWalkDebuggerClient client) {
+        return mProvider.attachDebugger(client);
+    }
+
+    /**
+     * Send the message to the debugger
+     */
+    public void sendDebuggerMessage(String message) {
+        mProvider.sendDebuggerMessage(message);
+    }
+
+    /**
+     * Return true if the debugger is already attached
+     */
+    public boolean isDebuggerAttached() {
+        return mProvider.isDebuggerAttached();
+    }
+
+    /**
+     * Detach the debugger on this RuntimeView
+     */
+    public void detachDebugger() {
+        mProvider.detachDebugger();
     }
 }

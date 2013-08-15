@@ -18,6 +18,7 @@ public class XWalkView extends FrameLayout {
 
     XWalkContent mContent;
     XWalkDevToolsServer mDevToolsServer;
+    XWalkDebugger mDebugger;
 
     public XWalkView(Context context) {
         this(context, null);
@@ -132,6 +133,28 @@ public class XWalkView extends FrameLayout {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         mContent.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public boolean attachDebugger(XWalkDebuggerClient client) {
+        if (mDebugger != null)
+            return false;
+        mDebugger = new XWalkDebugger(this, client);
+        return true;
+    }
+
+    public boolean isDebuggerAttached() {
+        return mDebugger != null;
+    }
+
+    public void sendDebuggerMessage(String message) {
+        if (mDebugger != null)
+            mDebugger.sendDebuggerMessage(message);
+    }
+
+    public void detachDebugger() {
+        if (mDebugger != null)
+            mDebugger.destroy();
+        mDebugger = null;
     }
 
     // TODO(shouqun): requestFocusFromTouch, setVerticalScrollBarEnabled are
