@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// var presentationInternal = requireNative("presentation");
+var presentationNative = requireNative("presentationNative");
 
 extension._setupExtensionInternal();
 var internal = extension._internal;
@@ -45,7 +45,7 @@ function handleShowRequest(msg) {
 			// Request to show presentation succeed.
 			var view_id = msg.view_id;
 			// Get window object from view_id
-			// var w = presentativeNative.GetView(view_id)
+			console.log("### " + presentationNative.GetRoutingID());
 			// request.success_callback.apply(null, [w]);
       console.log("no error happened");
 		} else {

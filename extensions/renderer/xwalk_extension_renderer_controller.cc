@@ -17,6 +17,8 @@
 #include "xwalk/extensions/common/xwalk_extension_messages.h"
 #include "xwalk/extensions/renderer/xwalk_extension_client.h"
 #include "xwalk/extensions/renderer/xwalk_extension_module.h"
+#include "xwalk/extensions/renderer/xwalk_presentation_module.h"
+#include "xwalk/extensions/renderer/xwalk_extension_render_view_handler.h"
 #include "xwalk/extensions/renderer/xwalk_module_system.h"
 #include "xwalk/extensions/renderer/xwalk_remote_extension_runner.h"
 #include "xwalk/extensions/renderer/xwalk_v8tools_module.h"
@@ -55,6 +57,9 @@ void XWalkExtensionRendererController::DidCreateScriptContext(
 
   module_system->RegisterNativeModule(
       "v8tools", scoped_ptr<XWalkNativeModule>(new XWalkV8ToolsModule));
+  module_system->RegisterNativeModule(
+      "presentationNative",
+      scoped_ptr<XWalkNativeModule>(new XWalkPresentationModule));
 
   in_browser_process_extensions_client_->CreateRunnersForModuleSystem(
       module_system);

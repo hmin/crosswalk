@@ -7,10 +7,15 @@
 
 #include "xwalk/extensions/browser/xwalk_extension_internal.h"
 
+#include "xwalk/runtime/browser/runtime_registry.h"
+
 namespace xwalk {
 namespace experimental {
 
-class PresentationExtension : public extensions::XWalkInternalExtension {
+class PresentationCreatorImpl;
+
+class PresentationExtension : public extensions::XWalkInternalExtension,
+                           public RuntimeRegistryObserver {
  public:
   PresentationExtension();
   virtual ~PresentationExtension();
@@ -19,6 +24,15 @@ class PresentationExtension : public extensions::XWalkInternalExtension {
   virtual const char* GetJavaScriptAPI() OVERRIDE;
   virtual extensions::XWalkExtensionInstance* CreateInstance(
       const extensions::XWalkExtension::PostMessageCallback& post_msg) OVERRIDE;
+
+ private:
+  // RuntimeRegistryObserver impls.
+  virtual void OnRuntimeAdded(Runtime* runtime) OVERRIDE;
+  virtual void OnRuntimeRemoved(Runtime* runtime) OVERRIDE;
+  virtual void OnRuntimeAppIconChanged(Runtime* runtime) OVERRIDE;
+
+//  typedef std::map<int, PresentationCreatorImpl> PresentationCreatorMap;
+//  PresentationCreatorMap presentation_creator_map_;
 };
 
 class PresentationInstance : public extensions::XWalkInternalExtensionInstance {
@@ -41,5 +55,3 @@ class PresentationInstance : public extensions::XWalkInternalExtensionInstance {
 }  // namespace xwalk
 
 #endif  // XWALK_EXPERIMENTAL_PRESENTATION_PRESENTATION_EXTENSION_H
-
-

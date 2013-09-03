@@ -30,6 +30,15 @@ const char* PresentationExtension::GetJavaScriptAPI() {
   return kSource_presentation_api;
 }
 
+void PresentationExtension::OnRuntimeAdded(Runtime* runtime) {
+}
+
+void PresentationExtension::OnRuntimeRemoved(Runtime* runtime) {
+}
+
+void PresentationExtension::OnRuntimeAppIconChanged(Runtime* runtime) {
+}
+
 XWalkExtensionInstance* PresentationExtension::CreateInstance(
     const XWalkExtension::PostMessageCallback& post_message) {
   return new PresentationInstance(this, post_message);
@@ -75,7 +84,6 @@ void PresentationInstance::OnRequestShow(const std::string& function_name,
     return;
   }
 
-  // Check the display availability from display manager.
   scoped_ptr<base::DictionaryValue> response(new base::DictionaryValue);
   response->SetString("cmd", "RequestShowResponse");
   response->SetInteger("request_id", request_id);
