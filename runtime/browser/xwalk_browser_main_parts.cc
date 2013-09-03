@@ -19,6 +19,7 @@
 #include "xwalk/application/common/application_file_util.h"
 #include "xwalk/application/common/application_manifest_constants.h"
 #include "xwalk/experimental/dialog/dialog_extension.h"
+#include "xwalk/experimental/presentation/presentation_extension.h"
 #include "xwalk/extensions/browser/xwalk_extension_service.h"
 #include "xwalk/extensions/common/xwalk_extension_switches.h"
 #include "xwalk/runtime/browser/devtools/remote_debugging_server.h"
@@ -359,6 +360,8 @@ void XWalkBrowserMainParts::RegisterInternalExtensions() {
       new RuntimeExtension()));
   extension_service_->RegisterExtension(scoped_ptr<XWalkExtension>(
       new experimental::DialogExtension(runtime_registry_.get())));
+  extension_service_->RegisterExtension(scoped_ptr<XWalkExtension>(
+      new experimental::PresentationExtension()));
 }
 
 #if defined(OS_TIZEN_MOBILE)

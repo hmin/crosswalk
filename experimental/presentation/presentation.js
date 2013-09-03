@@ -87,7 +87,7 @@ extension.setMessageListener(function(json) {
 exports.displayAvailable = false;
 exports.addEventListener = addEventListener;
 exports.removeEventListener = removeEventListener;
-exports.__defineSetter__("on"+DISPLAY_AVAILABLE_CHANGE_EVENT, function(callback) {
+exports.__defineSetter__("on" + DISPLAY_AVAILABLE_CHANGE_EVENT, function(callback) {
 	if (callback)
 	  addEventListener(DISPLAY_AVAILABLE_CHANGE_EVENT, callback);
 	else
