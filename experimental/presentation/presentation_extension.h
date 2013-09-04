@@ -27,12 +27,13 @@ class PresentationExtension : public extensions::XWalkInternalExtension,
 
  private:
   // RuntimeRegistryObserver impls.
-  virtual void OnRuntimeAdded(Runtime* runtime) OVERRIDE;
-  virtual void OnRuntimeRemoved(Runtime* runtime) OVERRIDE;
-  virtual void OnRuntimeAppIconChanged(Runtime* runtime) OVERRIDE;
+  virtual void OnRuntimeAdded(xwalk::Runtime* runtime) OVERRIDE;
+  virtual void OnRuntimeRemoved(xwalk::Runtime* runtime) OVERRIDE;
+  virtual void OnRuntimeAppIconChanged(xwalk::Runtime* runtime) OVERRIDE;
 
 //  typedef std::map<int, PresentationCreatorImpl> PresentationCreatorMap;
 //  PresentationCreatorMap presentation_creator_map_;
+  PresentationCreatorImpl* creator_;
 };
 
 class PresentationInstance : public extensions::XWalkInternalExtensionInstance {

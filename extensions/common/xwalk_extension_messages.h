@@ -7,6 +7,7 @@
 #include "base/values.h"
 #include "ipc/ipc_channel_handle.h"
 #include "ipc/ipc_message_macros.h"
+#include "googleurl/src/gurl.h"
 
 // Note: it is safe to use numbers after LastIPCMsgStart since that limit
 // is not relevant for embedders. It is used only by a tool inside chrome/
@@ -60,4 +61,18 @@ IPC_MESSAGE_CONTROL1(XWalkExtensionServerMsg_DestroyInstance,  // NOLINT(*)
                      int64_t /* instance id */)
 
 IPC_MESSAGE_CONTROL1(XWalkExtensionClientMsg_InstanceDestroyed,  // NOLINT(*)
-                     int64_t /* instance id */)
+                   int64_t /* instance id */)
+
+IPC_MESSAGE_CONTROL1(XWalkExtensionProcessMsg_RegisterExtensions,  // NOLINT(*)
+                   base::FilePath /* extensions path */)
+
+IPC_MESSAGE_CONTROL1(XWalkExtensionProcessHostMsg_RenderProcessChannelCreated, // NOLINT(*)
+                     IPC::ChannelHandle /* channel id */)
+
+IPC_MESSAGE_CONTROL1(XWalkViewMsg_ExtensionProcessChannelCreated, // NOLINT(*)
+                     IPC::ChannelHandle /* channel id */)
+
+IPC_MESSAGE_ROUTED3(XWalkViewHostMsg_RequestShowPresentation,
+                    int /* request id */,
+                    int /* opener routing id */,
+                    std::string /* target url */)

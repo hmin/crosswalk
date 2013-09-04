@@ -8,6 +8,7 @@
 #include "ipc/ipc_message.h"
 #include "third_party/WebKit/public/web/WebFrame.h"
 #include "third_party/WebKit/public/web/WebView.h"
+#include "xwalk/extensions/common/xwalk_extension_messages.h"
 
 using content::RenderView;
 using WebKit::WebFrame;
@@ -64,6 +65,29 @@ void GetWindowContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
   args.GetReturnValue().Set(window);
 }
 
+void RequestShowPresentation(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  if (args.Length() != 3)
+    return;
+  if (!args[0]->IsInt32() || !args[1]->IsInt32() ||
+      (!args[2]->IsStringObject() && !args[2]->IsString()))
+    return;
+  int request_id = args[0]->Int32Value();
+  int opener_id = args[1]->Int32Value();
+  std::string target_url = *v8::String::Utf8Value(args[2]->ToString());
+
+  RenderView* render_view = GetCurrentRenderView();
+  if (!render_view)
+    return;
+
+  int routing_id = render_view->GetRoutingID();
+  render_view->Send(
+      new XWalkViewHostMsg_RequestShowPresentation(routing_id,
+                                                   request_id,
+                                                   opener_id,
+                                                   target_url));
+  return;
+}
+
 }  // namespace
 
 XWalkPresentationModule::XWalkPresentationModule() {
@@ -83,8 +107,9 @@ v8::Handle<v8::Object> XWalkPresentationModule::NewInstance() {
   if (object_template_.IsEmpty()) {
     v8::Handle<v8::ObjectTemplate> templ = v8::ObjectTemplate::New();
     templ->Set("GetRoutingID",
-               v8::FunctionTemplate::New(
-                    GetRoutingIDFromCurrentContext));
+               v8::FunctionTemplate::New(GetRoutingIDFromCurrentContext));
+    templ->Set("RequestShowPresentation",
+               v8::FunctionTemplate::New(RequestShowPresentation));
     object_template_.Reset(isolate, templ);
   }
 

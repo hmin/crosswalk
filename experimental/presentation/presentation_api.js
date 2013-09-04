@@ -69,9 +69,12 @@ function ShowRequest(id, successCallback, errorCallback) {
 
 exports.requestShow = function(url, successCallback, errorCallback) {
 	var request_id = _next_request_id_++;
+  var opener_id = presentationNative.GetRoutingID();
 	var request = new ShowRequest(request_id, successCallback, errorCallback);
 	_show_requests[request_id]= request;
-	extension._internal.postMessage("requestShow", [request_id, url]);
+
+  presentationNative.RequestShowPresentation(request_id, opener_id, url);
+//	extension._internal.postMessage("requestShow", [request_id, opener_id, url]);
 }
 
 extension.setMessageListener(function(msg) {

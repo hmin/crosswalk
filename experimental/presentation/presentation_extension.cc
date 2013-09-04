@@ -7,6 +7,12 @@
 #include "base/memory/scoped_ptr.h"
 #include "base/values.h"
 #include "content/public/browser/browser_thread.h"
+#include "ipc/ipc_message.h"
+#include "xwalk/experimental/presentation/presentation_creator_impl.h"
+#include "xwalk/runtime/browser/runtime.h"
+
+using xwalk::Runtime;
+using xwalk::RuntimeRegistry;
 
 // This will be generated from presentation_api.js.
 extern const char kSource_presentation_api[];
@@ -21,9 +27,11 @@ using extensions::XWalkExtensionInstance;
 PresentationExtension::PresentationExtension()
   : XWalkInternalExtension() {
   set_name("navigator.presentation");
+  RuntimeRegistry::Get()->AddObserver(this);
 }
 
 PresentationExtension::~PresentationExtension() {
+  RuntimeRegistry::Get()->RemoveObserver(this);
 }
 
 const char* PresentationExtension::GetJavaScriptAPI() {
@@ -31,6 +39,8 @@ const char* PresentationExtension::GetJavaScriptAPI() {
 }
 
 void PresentationExtension::OnRuntimeAdded(Runtime* runtime) {
+  DLOG(INFO) << "A new runtime is added";
+  creator_ = new PresentationCreatorImpl(runtime->web_contents());
 }
 
 void PresentationExtension::OnRuntimeRemoved(Runtime* runtime) {
@@ -72,14 +82,19 @@ void PresentationInstance::HandleMessage(scoped_ptr<base::Value> msg) {
 void PresentationInstance::OnRequestShow(const std::string& function_name,
                                          const std::string& callback_id,
                                          base::ListValue* args) {
-  if (!args || args->GetSize() != 2) {
+  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
+
+  if (!args || args->GetSize() != 3) {
     DLOG(WARNING) << "Invalid parameters passed to " << function_name;
     return;
   }
 
   int request_id = -1;
+  int opener_routing_id = MSG_ROUTING_NONE;
   std::string url;
-  if (!args->GetInteger(0, &request_id) || !args->GetString(1, &url)) {
+  if (!args->GetInteger(0, &request_id) ||
+      !args->GetInteger(1, &opener_routing_id) ||
+      !args->GetString(2, &url)) {
     DLOG(WARNING) << "Invalid parameter type passed to " << function_name;
     return;
   }
