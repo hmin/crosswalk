@@ -72,7 +72,24 @@ IPC_MESSAGE_CONTROL1(XWalkExtensionProcessHostMsg_RenderProcessChannelCreated, /
 IPC_MESSAGE_CONTROL1(XWalkViewMsg_ExtensionProcessChannelCreated, // NOLINT(*)
                      IPC::ChannelHandle /* channel id */)
 
+// Sent to browser from render process to request to show a new presentation for
+// the target url.
 IPC_MESSAGE_ROUTED3(XWalkViewHostMsg_RequestShowPresentation,
                     int /* request id */,
                     int /* opener routing id */,
                     std::string /* target url */)
+
+// Sent to renderer to indicate the request of showing presentation was failed
+// with the error code and error message.
+IPC_MESSAGE_ROUTED3(XWalkViewMsg_ShowPresentationFailed,
+                    int /* request id */,
+                    int /* error code */,
+                    std::string /* error message */)
+
+// Sent to renderer from browser process to indicate the presentation is showed
+// successfully. The view id is for the presentation contents.
+IPC_MESSAGE_ROUTED2(XWalkViewMsg_ShowPresentationSucceeded,
+                    int /* request id */,
+                    int /* view id */)
+
+

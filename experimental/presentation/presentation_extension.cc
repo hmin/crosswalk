@@ -5,6 +5,7 @@
 #include "xwalk/experimental/presentation/presentation_extension.h"
 
 #include "base/memory/scoped_ptr.h"
+#include "base/stl_util.h"
 #include "base/values.h"
 #include "content/public/browser/browser_thread.h"
 #include "ipc/ipc_message.h"
@@ -39,11 +40,18 @@ const char* PresentationExtension::GetJavaScriptAPI() {
 }
 
 void PresentationExtension::OnRuntimeAdded(Runtime* runtime) {
-  DLOG(INFO) << "A new runtime is added";
-  creator_ = new PresentationCreatorImpl(runtime->web_contents());
+  // A Runtime instance won't be added twice.
+  DCHECK(!ContainsKey(creator_map_, runtime));
+  linked_ptr<PresentationCreatorImpl> impl(
+      new PresentationCreatorImpl(runtime->web_contents()));
+  creator_map_.insert(
+      std::pair<Runtime*, linked_ptr<PresentationCreatorImpl> >(runtime, impl));
 }
 
 void PresentationExtension::OnRuntimeRemoved(Runtime* runtime) {
+  PresentationCreatorMap::iterator it = creator_map_.find(runtime);
+  if (it != creator_map_.end())
+    creator_map_.erase(it);
 }
 
 void PresentationExtension::OnRuntimeAppIconChanged(Runtime* runtime) {
@@ -51,6 +59,7 @@ void PresentationExtension::OnRuntimeAppIconChanged(Runtime* runtime) {
 
 XWalkExtensionInstance* PresentationExtension::CreateInstance(
     const XWalkExtension::PostMessageCallback& post_message) {
+  DLOG(INFO) << "## new presentation instance is created";
   return new PresentationInstance(this, post_message);
 }
 
@@ -61,7 +70,6 @@ PresentationInstance::PresentationInstance(PresentationExtension* extension,
   const XWalkExtension::PostMessageCallback& post_message)
     : XWalkInternalExtensionInstance(post_message),
       extension_(extension) {
-  RegisterFunction("requestShow", &PresentationInstance::OnRequestShow);
 }
 
 PresentationInstance::~PresentationInstance() {
@@ -77,35 +85,6 @@ void PresentationInstance::HandleMessage(scoped_ptr<base::Value> msg) {
   }
 
   XWalkInternalExtensionInstance::HandleMessage(msg.Pass());
-}
-
-void PresentationInstance::OnRequestShow(const std::string& function_name,
-                                         const std::string& callback_id,
-                                         base::ListValue* args) {
-  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::UI));
-
-  if (!args || args->GetSize() != 3) {
-    DLOG(WARNING) << "Invalid parameters passed to " << function_name;
-    return;
-  }
-
-  int request_id = -1;
-  int opener_routing_id = MSG_ROUTING_NONE;
-  std::string url;
-  if (!args->GetInteger(0, &request_id) ||
-      !args->GetInteger(1, &opener_routing_id) ||
-      !args->GetString(2, &url)) {
-    DLOG(WARNING) << "Invalid parameter type passed to " << function_name;
-    return;
-  }
-
-  scoped_ptr<base::DictionaryValue> response(new base::DictionaryValue);
-  response->SetString("cmd", "RequestShowResponse");
-  response->SetInteger("request_id", request_id);
-  response->SetInteger("error_code", 0);
-  response->SetString("display_id", "fake_id");
-
-  PostMessageToJS(scoped_ptr<base::Value>(response.release()));
 }
 
 }  // namespace experimental

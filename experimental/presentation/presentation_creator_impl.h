@@ -9,10 +9,13 @@
 #include <vector>
 
 #include "base/memory/scoped_ptr.h"
-#include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "googleurl/src/gurl.h"
 #include "xwalk/experimental/presentation/presentation_delegate.h"
+
+namespace content {
+class WebContents;
+}
 
 namespace xwalk {
 namespace experimental {
@@ -46,8 +49,10 @@ class PresentationCreatorImpl : public PresentationDelegate,
   virtual bool OnMessageReceived(const IPC::Message& message) OVERRIDE;
 
   // PresentationCreator implementations.
-  virtual bool CanCreatePresentation(const GURL& url) OVERRIDE;
-  virtual void CreateNewPresentation(content::WebContents* web_contents) OVERRIDE;
+  virtual bool CanCreatePresentation(const GURL& url);
+  virtual void CreateNewPresentation(int request_id,
+                                     int opener_id,
+                                     const std::string& url);
 
   void OnRequestShowPresentation(int request_id,
                                  int opener_id,

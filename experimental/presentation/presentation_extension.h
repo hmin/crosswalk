@@ -7,6 +7,9 @@
 
 #include "xwalk/extensions/browser/xwalk_extension_internal.h"
 
+#include <map>
+
+#include "base/memory/linked_ptr.h"
 #include "xwalk/runtime/browser/runtime_registry.h"
 
 namespace xwalk {
@@ -31,9 +34,12 @@ class PresentationExtension : public extensions::XWalkInternalExtension,
   virtual void OnRuntimeRemoved(xwalk::Runtime* runtime) OVERRIDE;
   virtual void OnRuntimeAppIconChanged(xwalk::Runtime* runtime) OVERRIDE;
 
-//  typedef std::map<int, PresentationCreatorImpl> PresentationCreatorMap;
-//  PresentationCreatorMap presentation_creator_map_;
-  PresentationCreatorImpl* creator_;
+  // Mapping of routing id and presentation creator. Each Runtime instance
+  // should have a presentation creator to handle the presentation showing
+  // request from renderer process.
+  typedef std::map<Runtime*, linked_ptr<PresentationCreatorImpl> >
+      PresentationCreatorMap;
+  PresentationCreatorMap creator_map_;
 };
 
 class PresentationInstance : public extensions::XWalkInternalExtensionInstance {
