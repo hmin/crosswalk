@@ -8,6 +8,8 @@
 
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_view.h"
+#include "ui/gfx/display.h"
+#include "ui/gfx/screen.h"
 
 namespace xwalk {
 namespace experimental {
@@ -19,11 +21,16 @@ int kDefaultWidth = 800;
 int kDefaultHeight = 600;
 
 gboolean OnWindowDestroyedCallback(GtkWidget* widget, gpointer userdata) {
-  DLOG(INFO) << "### window destroyed";
   PresentationImpl* impl = static_cast<PresentationImpl*>(userdata);
   impl->OnWindowDestroyed();
   return FALSE;
 }  // namespace
+
+int64 GetPrimaryDisplayID() {
+  gfx::Screen* screen = gfx::Screen::GetNativeScreen();
+  gfx::Display display = screen->GetPrimaryDisplay();
+  return display.id();
+}
 
 }
 
@@ -31,7 +38,8 @@ void PresentationImpl::PlatformCreatePresentation() {
   if (window_)
     return;
 
-  if (!display_id_.empty()) {
+  if (display_id_ != GetPrimaryDisplayID()) {
+    // TODO: Implement to create window on the secondary display.
     NOTIMPLEMENTED();
     return;
   }

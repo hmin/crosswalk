@@ -33,13 +33,14 @@ class PresentationDelegate;
 // so the client code won't need to delete it by manual.
 class PresentationImpl : public content::WebContentsDelegate {
  public:
-  static PresentationImpl* Create(content::WebContents* source);
+  static PresentationImpl* Create(content::WebContents* source,
+                                  int64 display_id);
   ~PresentationImpl();
 
   content::WebContents* web_contents() const { return web_contents_.get(); }
 
-  std::string display_id() const { return display_id_; }
-  void set_display_id(const std::string& id) { display_id_ = id; }
+  int64 display_id() const { return display_id_; }
+  void set_display_id(int64 id) { display_id_ = id; }
 
   void set_delegate(PresentationDelegate* delegate) { delegate_ = delegate; }
 
@@ -59,7 +60,7 @@ class PresentationImpl : public content::WebContentsDelegate {
   void OnDisplayError();
 
  private:
-  explicit PresentationImpl(content::WebContents* web_contents);
+  explicit PresentationImpl(content::WebContents* web_contents, int64 display_id);
 
   // WebContentsDelegate impl.
   virtual void CloseContents(content::WebContents* source) OVERRIDE;
@@ -78,9 +79,8 @@ class PresentationImpl : public content::WebContentsDelegate {
   // The native window to hold the |web_contents_|.
   gfx::NativeWindow window_;
 
-  // The display used for showing the presentation window. If it is
-  // empty, the default display (same as its opener) is used.
-  std::string display_id_;
+  // The display used for showing the presentation window.
+  int64 display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(PresentationImpl);
 };

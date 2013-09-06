@@ -17,16 +17,18 @@ namespace xwalk {
 namespace experimental {
 
 // static
-PresentationImpl* PresentationImpl::Create(WebContents* web_contents) {
-  return new PresentationImpl(web_contents);
+PresentationImpl* PresentationImpl::Create(WebContents* web_contents,
+                                           int64 display_id) {
+  return new PresentationImpl(web_contents, display_id);
 }
 
-PresentationImpl::PresentationImpl(WebContents* web_contents)
+PresentationImpl::PresentationImpl(WebContents* web_contents,
+                                   int64 display_id)
   : web_contents_(web_contents),
     delegate_(NULL),
-    window_(NULL) {
+    window_(NULL),
+    display_id_(display_id) {
   web_contents_->SetDelegate(this);
-  PlatformCreatePresentation();
 }
 
 PresentationImpl::~PresentationImpl() {
@@ -36,6 +38,7 @@ PresentationImpl::~PresentationImpl() {
 }
 
 void PresentationImpl::Show() {
+  PlatformCreatePresentation();
   PlatformShowPresentation();
 }
 

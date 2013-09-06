@@ -38,7 +38,7 @@ class PresentationMessageListener : public RenderViewObserver {
   virtual bool OnMessageReceived(const IPC::Message& message) OVERRIDE;
 
   void OnShowPresentationSucceeded(int request_id, int view_id);
-  void OnShowPresentationFailed(int request_id, int error_code,
+  void OnShowPresentationFailed(int request_id,
                                 const std::string& error_message);
 
   void DispatchMessage(const base::Value& msg);
@@ -82,7 +82,12 @@ void PresentationMessageListener::OnShowPresentationSucceeded(
 }
 
 void PresentationMessageListener::OnShowPresentationFailed(
-    int request_id, int error_code, const std::string& message) {
+    int request_id, const std::string& message) {
+  base::DictionaryValue dict;
+  dict.SetString("cmd", "ShowFailed");
+  dict.SetInteger("request_id", request_id);
+  dict.SetString("error_message", message);
+  DispatchMessage(dict);
 }
 
 void PresentationMessageListener::DispatchMessage(const base::Value& message) {

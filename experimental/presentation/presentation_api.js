@@ -12,6 +12,10 @@ var _show_requests = {};
 var _listeners = {}; // Listeners of display available change event
 var DISPLAY_AVAILABLE_CHANGE_EVENT = "displayavailablechange";
 
+function DOMError(name) {
+  this.name = name;
+}
+
 function ShowRequest(id, successCallback, errorCallback) {
 	this._request_id = id;
 	this._success_callback = successCallback;
@@ -32,6 +36,15 @@ function removeEventListener(name, callback) {
   }
 }
 
+exports.requestShow = function(url, successCallback, errorCallback) {
+	var request_id = _next_request_id_++;
+  var opener_id = presentationNative.GetViewID();
+	var request = new ShowRequest(request_id, successCallback, errorCallback);
+	_show_requests[request_id]= request;
+
+  presentationNative.RequestShowPresentation(request_id, opener_id, url);
+}
+
 function handleDisplayAvailableChange(msg) {
 	if (exports.displayAvailable != msg.displayAvailable) {
 		exports.displayAvailable = msg.displayAvailable;
@@ -46,30 +59,26 @@ function handleDisplayAvailableChange(msg) {
 function handleShowSucceed(request_id, view_id) {
 	var request = _show_requests[request_id];
 	if (request) {
-    // Request to show presentation succeed.
-    // Get window object from view_id
-    console.log("### view id" + view_id);
     var view = presentationNative.GetWindowContext(view_id);
     request._success_callback.apply(null, [view]);
-    console.log("no error happened");
 		delete _show_requests[request_id];
 	} else {
-		// TODO(hmin): throw an error.
-		console.log("Invalid request id: " + request_id);
+		console.log("Unknow error: invalid request id." + request_id);
 	}
 
 }
 
-exports.requestShow = function(url, successCallback, errorCallback) {
-	var request_id = _next_request_id_++;
-  var opener_id = presentationNative.GetViewID();
-	var request = new ShowRequest(request_id, successCallback, errorCallback);
-	_show_requests[request_id]= request;
-
-  console.log("start a request to show presentation");
-  presentationNative.RequestShowPresentation(request_id, opener_id, url);
-//	extension._internal.postMessage("requestShow", [request_id, opener_id, url]);
+function handleShowFailed(request_id, error_message) {
+  var request = _show_requests[request_id];
+  if (request) {
+    var error = new DOMError(error_message);
+    request._error_callback.apply(null, [error]);
+    delete _show_requests[request_id];
+  } else {
+		console.log("Unknow error: invalid request id." + request_id);
+  }
 }
+
 
 extension.setMessageListener(function(msg) {
   if (msg.cmd == "DisplayAvailableChange") {
@@ -78,9 +87,12 @@ extension.setMessageListener(function(msg) {
     setTimeout(function() {
       handleShowSucceed(msg.request_id, msg.view_id);
     }, 0);
-//    handleShowSucceed(msg);
+  } else if (msg.cmd == "ShowFailed") {
+    setTimeout(function() {
+      handleShowFailed(msg.request_id, msg.error_message);
+    }, 0);
   } else {
-    console.error("Invalid response : " + msg.cmd);
+    console.error("Invalid response message : " + msg.cmd);
   }
 })
 

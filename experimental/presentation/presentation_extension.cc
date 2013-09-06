@@ -42,6 +42,7 @@ const char* PresentationExtension::GetJavaScriptAPI() {
 void PresentationExtension::OnRuntimeAdded(Runtime* runtime) {
   // A Runtime instance won't be added twice.
   DCHECK(!ContainsKey(creator_map_, runtime));
+  DLOG(INFO) << "On new runtime added";
   linked_ptr<PresentationCreatorImpl> impl(
       new PresentationCreatorImpl(runtime->web_contents()));
   creator_map_.insert(

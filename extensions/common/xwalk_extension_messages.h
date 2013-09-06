@@ -81,9 +81,8 @@ IPC_MESSAGE_ROUTED3(XWalkViewHostMsg_RequestShowPresentation,
 
 // Sent to renderer to indicate the request of showing presentation was failed
 // with the error code and error message.
-IPC_MESSAGE_ROUTED3(XWalkViewMsg_ShowPresentationFailed,
+IPC_MESSAGE_ROUTED2(XWalkViewMsg_ShowPresentationFailed,
                     int /* request id */,
-                    int /* error code */,
                     std::string /* error message */)
 
 // Sent to renderer from browser process to indicate the presentation is showed

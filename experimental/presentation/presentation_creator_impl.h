@@ -22,6 +22,8 @@ namespace experimental {
 
 class PresentationImpl;
 
+typedef std::vector<PresentationImpl*> PresentationList;
+
 // A presentation creator is responsible for the presentation creation requested
 // from the web contents.
 class PresentationCreatorImpl : public PresentationDelegate,
@@ -30,18 +32,9 @@ class PresentationCreatorImpl : public PresentationDelegate,
   explicit PresentationCreatorImpl(content::WebContents* web_contents);
   virtual ~PresentationCreatorImpl();
 
- private:
-  // Represent a request for showing presentation from renderer process.
-  struct ShowRequest {
-    // The request id assigned by the presentation creator, and is unqiue within
-    // a RVH instance.
-    int request_id;
-    // The target URL of the presentation to be showed.
-    GURL target_url;
-    // The target display on which the presentation will be showed.
-    std::string display_id;
-  };
+  const PresentationList& presentations() const { return presentation_list_; }
 
+ private:
   // PresentationDelegate implementations.
   virtual void OnPresentationDestroyed(PresentationImpl* presentation) OVERRIDE;
 
@@ -51,20 +44,14 @@ class PresentationCreatorImpl : public PresentationDelegate,
   // PresentationCreator implementations.
   virtual bool CanCreatePresentation(const GURL& url);
   virtual void CreateNewPresentation(int request_id,
-                                     int opener_id,
+                                     int64 display_id,
                                      const std::string& url);
 
   void OnRequestShowPresentation(int request_id,
                                  int opener_id,
                                  const std::string& url);
 
-  typedef std::vector<PresentationImpl*> PresentationList;
   PresentationList presentation_list_;
-
-  // The available displays connected to the system. Will be updated if the
-  // display is added/removed.
-  std::vector<std::string> available_displays_;
-
   DISALLOW_COPY_AND_ASSIGN(PresentationCreatorImpl);
 };
 

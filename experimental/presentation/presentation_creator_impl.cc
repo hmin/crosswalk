@@ -12,6 +12,8 @@
 #include "content/public/browser/site_instance.h"
 #include "content/public/browser/web_contents.h"
 #include "ui/gfx/display.h"
+
+#include "xwalk/experimental/presentation/presentation_display_manager.h"
 #include "xwalk/experimental/presentation/presentation_impl.h"
 #include "xwalk/extensions/common/xwalk_extension_messages.h"
 
@@ -22,6 +24,9 @@ using content::WebContents;
 
 namespace xwalk {
 namespace experimental {
+
+const char* kInvalidAccessError = "InvalidAccessError";
+const char* kNotFoundError = "NotFoundError";
 
 PresentationCreatorImpl::PresentationCreatorImpl(WebContents* web_contents)
   : WebContentsObserver(web_contents) {
@@ -56,19 +61,47 @@ void PresentationCreatorImpl::OnRequestShowPresentation(
     int request_id, int opener_id, const std::string& url) {
   DLOG(INFO) << "Request id: " << request_id << " opener id: " << opener_id
              << " target url" << url;
-  // TODO: permission checking here.
-  CreateNewPresentation(request_id, opener_id, url);
+
+  GURL target_url(url);
+  // TODO(hmin): We might need to popup a permission dialog to ask if the
+  // end-user grants the presentation showing right. Here we bypass it since
+  // it is implemented in an runtime, not a browser.
+  if (!CanCreatePresentation(target_url)) {
+    Send(new XWalkViewMsg_ShowPresentationFailed(routing_id(),
+                                                 request_id,
+                                                 kInvalidAccessError));
+    return;
+  }
+
+   std::vector<gfx::Display> displays =
+      PresentationDisplayManager::Get()->GetSecondaryDisplays();
+   if (displays.size() == 0) {
+     Send(new XWalkViewMsg_ShowPresentationFailed(routing_id(),
+                                                  request_id,
+                                                  kNotFoundError));
+     return;
+   }
+
+   // TODO(hmin): We should popup a display selection dialog to allow end-user
+   // select the target display in case of there are more than one display
+   // available for presentation. Here we always select the first secondary
+   // display as target display for simplicity.
+   int64 selected_display = displays[0].id();
+   CreateNewPresentation(request_id, selected_display, url);
 }
 
 void PresentationCreatorImpl::CreateNewPresentation(
-    int request_id, int opener_id, const std::string& url) {
+    int request_id, int64 display_id, const std::string& url) {
   GURL target_url(url);
   BrowserContext* browser_context = web_contents()->GetBrowserContext();
+
+  // The site instance used to create the new web contents is the same as the
+  // opener, such that the new wbe contents can be in the same process as
+  // the opener if they are sharing the same origin.
   WebContents::CreateParams params(browser_context,
       web_contents()->GetSiteInstance());
 
   WebContents* new_contents = WebContents::Create(params);
-
   NavigationController::LoadURLParams load_params(target_url);
   new_contents->GetController().LoadURLWithParams(load_params);
 
@@ -77,12 +110,10 @@ void PresentationCreatorImpl::CreateNewPresentation(
       web_contents()->GetRenderViewHost()->GetProcess()->GetID())
     view_id = new_contents->GetRoutingID();
 
-  PresentationImpl* impl = PresentationImpl::Create(new_contents);
+  PresentationImpl* impl = PresentationImpl::Create(new_contents, display_id);
   impl->set_delegate(this);
   impl->Show();
   presentation_list_.push_back(impl);
-
-  DLOG(INFO) << "New presentation: " << view_id;
 
   Send(new XWalkViewMsg_ShowPresentationSucceeded(routing_id(),
                                                   request_id,
@@ -90,10 +121,6 @@ void PresentationCreatorImpl::CreateNewPresentation(
 }
 
 bool PresentationCreatorImpl::CanCreatePresentation(const GURL& url) {
-  // TODO(hmin): Need to figure out the policy of permission control.
-  // A presentation is allowed to show if:
-  // o There is at least one available external display for use, and
-  // o User grant the permission of showing presentation on the external display.
   return true;
 }
 
@@ -102,14 +129,8 @@ void PresentationCreatorImpl::OnPresentationDestroyed(PresentationImpl* impl) {
   for (;it != presentation_list_.end(); ++it)
     if (*it == impl) break;
 
-  if (it != presentation_list_.end()) {
-//    PresentationImpl* impl = *it;
-
-//    int presentation_routing_id = impl->web_contents()->GetRoutingID();
-//    Send(new ViewMsg_ClosePresentation(routing_id(), presentation_routing_id));
-//
+  if (it != presentation_list_.end())
     presentation_list_.erase(it);
-  }
 }
 
 }  // namespace experimental
