@@ -45,9 +45,9 @@ exports.requestShow = function(url, successCallback, errorCallback) {
   presentationNative.RequestShowPresentation(request_id, opener_id, url);
 }
 
-function handleDisplayAvailableChange(msg) {
-	if (exports.displayAvailable != msg.displayAvailable) {
-		exports.displayAvailable = msg.displayAvailable;
+function handleDisplayAvailableChange(is_available) {
+	if (exports.displayAvailable != is_available) {
+		exports.displayAvailable = is_available;
 		if (!_listeners[DISPLAY_AVAILABLE_CHANGE_EVENT])
 			return;
 		for (var i = 0; i < _listeners[DISPLAY_AVAILABLE_CHANGE_EVENT].length; ++i) {
@@ -59,6 +59,7 @@ function handleDisplayAvailableChange(msg) {
 function handleShowSucceed(request_id, view_id) {
 	var request = _show_requests[request_id];
 	if (request) {
+    console.log("view id" + view_id);
     var view = presentationNative.GetWindowContext(view_id);
     request._success_callback.apply(null, [view]);
 		delete _show_requests[request_id];
@@ -82,14 +83,14 @@ function handleShowFailed(request_id, error_message) {
 
 extension.setMessageListener(function(msg) {
   if (msg.cmd == "DisplayAvailableChange") {
-    handleDisplayAvailableChange(msg);
+    handleDisplayAvailableChange(msg.data /* available? */);
   } else if (msg.cmd == "ShowSucceed") {
     setTimeout(function() {
-      handleShowSucceed(msg.request_id, msg.view_id);
+      handleShowSucceed(msg.request_id, parseInt(msg.data) /* view id */);
     }, 0);
   } else if (msg.cmd == "ShowFailed") {
     setTimeout(function() {
-      handleShowFailed(msg.request_id, msg.error_message);
+      handleShowFailed(msg.request_id, msg.data /* error message */);
     }, 0);
   } else {
     console.error("Invalid response message : " + msg.cmd);

@@ -4,6 +4,7 @@
 
 #include "xwalk/extensions/renderer/xwalk_presentation_module.h"
 
+#include "base/strings/string_number_conversions.h"
 #include "content/public/renderer/render_view.h"
 #include "content/public/renderer/render_view_observer.h"
 #include "ipc/ipc_message.h"
@@ -30,6 +31,10 @@ namespace {
 
 const char* kExtensionModuleName = "navigator.presentation";
 
+const char* kShowSucceedCmd = "ShowSucceed";
+const char* kShowFailedCmd = "ShowFailed";
+const char* kCrossDomainError = "CrossDomainError";
+
 bool IsProtocolAllowed(const WebString& protocol) {
   if (protocol == "file")
     return true;
@@ -43,7 +48,8 @@ class PresentationMessageListener : public RenderViewObserver {
   PresentationMessageListener(RenderView* render_view);
   virtual ~PresentationMessageListener();
 
-  static void DispatchMessage(RenderView* render_view, const base::Value& msg);
+  static void DispatchMessage(RenderView* render_view, const std::string& cmd,
+      int request_id, const std::string& data);
 
  private:
   // RenderViewObserver implementations.
@@ -82,27 +88,18 @@ bool PresentationMessageListener::OnMessageReceived(
 
 void PresentationMessageListener::OnShowPresentationSucceeded(
     int request_id, int view_id) {
-//  base::ListValue msg;
-//  msg.AppendString("THIS is a message");
-  base::DictionaryValue dict;
-  dict.SetString("cmd", "ShowSucceed");
-  dict.SetInteger("request_id", request_id);
-  dict.SetInteger("view_id", view_id);
-  DispatchMessage(render_view(), dict);
+  DispatchMessage(render_view(), kShowSucceedCmd, request_id,
+      base::IntToString(view_id));
 }
 
 void PresentationMessageListener::OnShowPresentationFailed(
     int request_id, const std::string& message) {
-  base::DictionaryValue dict;
-  dict.SetString("cmd", "ShowFailed");
-  dict.SetInteger("request_id", request_id);
-  dict.SetString("error_message", message);
-  DispatchMessage(render_view(), dict);
+  DispatchMessage(render_view(), kShowFailedCmd, request_id, message);
 }
 
 // static
 void PresentationMessageListener::DispatchMessage(RenderView* render_view,
-    const base::Value& message) {
+    const std::string& cmd, int request_id, const std::string& data) {
   WebFrame* frame = render_view->GetWebView()->mainFrame();
 
   DCHECK(frame);
@@ -115,8 +112,14 @@ void PresentationMessageListener::DispatchMessage(RenderView* render_view,
 
   XWalkExtensionModule* extension_module =
       module_system->GetExtensionModule(kExtensionModuleName);
+  DCHECK(extension_module);
 
-  extension_module->DispatchMessageToListener(context, message);
+  base::DictionaryValue dict;
+  dict.SetString("cmd", cmd);
+  dict.SetInteger("request_id", request_id);
+  dict.SetString("data", data);
+
+  extension_module->DispatchMessageToListener(context, dict);
 }
 
 XWalkPresentationModule::XWalkPresentationModule() {
@@ -225,12 +228,8 @@ void XWalkPresentationModule::RequestShowPresentation(
   }
 
   // Otherwise, notify the opener a security error was occurred.
-  base::DictionaryValue dict;
-  dict.SetString("cmd", "ShowFailed");
-  dict.SetInteger("request_id", request_id);
-  dict.SetString("error_message", "SecurityError");
-
-  PresentationMessageListener::DispatchMessage(render_view, dict);
+  PresentationMessageListener::DispatchMessage(render_view, kShowFailedCmd,
+      request_id, kCrossDomainError);
 }
 
 v8::Handle<v8::Object> XWalkPresentationModule::NewInstance() {
