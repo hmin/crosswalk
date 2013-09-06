@@ -10,6 +10,7 @@ var internal = extension._internal;
 var _next_request_id_ = 0;
 var _show_requests = {};
 var _listeners = {}; // Listeners of display available change event
+var _display_available = false;
 var DISPLAY_AVAILABLE_CHANGE_EVENT = "displayavailablechange";
 
 function DOMError(name) {
@@ -45,11 +46,13 @@ exports.requestShow = function(url, successCallback, errorCallback) {
   presentationNative.RequestShowPresentation(request_id, opener_id, url);
 }
 
-function handleDisplayAvailableChange(is_available) {
-	if (exports.displayAvailable != is_available) {
-		exports.displayAvailable = is_available;
+function handleDisplayAvailableChange(data) {
+  var is_available = data == 1 ? true : false;
+	if (_display_available != is_available) {
+		_display_available = is_available;
 		if (!_listeners[DISPLAY_AVAILABLE_CHANGE_EVENT])
 			return;
+    console.log("call event listener");
 		for (var i = 0; i < _listeners[DISPLAY_AVAILABLE_CHANGE_EVENT].length; ++i) {
 			_listeners[DISPLAY_AVAILABLE_CHANGE_EVENT][i].apply(null, null);
 		}
@@ -59,7 +62,6 @@ function handleDisplayAvailableChange(is_available) {
 function handleShowSucceed(request_id, view_id) {
 	var request = _show_requests[request_id];
 	if (request) {
-    console.log("view id" + view_id);
     var view = presentationNative.GetWindowContext(view_id);
     request._success_callback.apply(null, [view]);
 		delete _show_requests[request_id];
@@ -83,7 +85,9 @@ function handleShowFailed(request_id, error_message) {
 
 extension.setMessageListener(function(msg) {
   if (msg.cmd == "DisplayAvailableChange") {
-    handleDisplayAvailableChange(msg.data /* available? */);
+    setTimeout(function() {
+      handleDisplayAvailableChange(msg.data /* available? */);
+    }, 0);
   } else if (msg.cmd == "ShowSucceed") {
     setTimeout(function() {
       handleShowSucceed(msg.request_id, parseInt(msg.data) /* view id */);
@@ -97,7 +101,7 @@ extension.setMessageListener(function(msg) {
   }
 })
 
-exports.displayAvailable = false;
+exports.displayAvailable = _display_available;
 exports.addEventListener = addEventListener;
 exports.removeEventListener = removeEventListener;
 exports.__defineSetter__("on"+DISPLAY_AVAILABLE_CHANGE_EVENT, function(callback) {
@@ -105,4 +109,10 @@ exports.__defineSetter__("on"+DISPLAY_AVAILABLE_CHANGE_EVENT, function(callback)
 	  addEventListener(DISPLAY_AVAILABLE_CHANGE_EVENT, callback);
 	else
 	  removeEventListener(DISPLAY_AVAILABLE_CHANGE_EVENT, this.ondisplayavailablechange);
-})
+});
+
+//exports.__defineGetter__("displayAvailable", function() {
+//  return _display_available;
+//});
+
+

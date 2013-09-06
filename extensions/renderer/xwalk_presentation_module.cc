@@ -33,6 +33,7 @@ const char* kExtensionModuleName = "navigator.presentation";
 
 const char* kShowSucceedCmd = "ShowSucceed";
 const char* kShowFailedCmd = "ShowFailed";
+const char* kDisplayAvailableChangeEvent = "DisplayAvailableChange";
 const char* kCrossDomainError = "CrossDomainError";
 
 bool IsProtocolAllowed(const WebString& protocol) {
@@ -59,6 +60,7 @@ class PresentationMessageListener : public RenderViewObserver {
   void OnShowPresentationSucceeded(int request_id, int view_id);
   void OnShowPresentationFailed(int request_id,
                                 const std::string& error_message);
+  void OnDisplayAvailableChange(bool available);
 
   v8::Handle<v8::Context> v8_context_;
 };
@@ -81,6 +83,8 @@ bool PresentationMessageListener::OnMessageReceived(
                         OnShowPresentationSucceeded)
     IPC_MESSAGE_HANDLER(XWalkViewMsg_ShowPresentationFailed,
                         OnShowPresentationFailed)
+    IPC_MESSAGE_HANDLER(XWalkViewMsg_DisplayAvailableChange,
+                        OnDisplayAvailableChange)
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
   return handled;
@@ -95,6 +99,12 @@ void PresentationMessageListener::OnShowPresentationSucceeded(
 void PresentationMessageListener::OnShowPresentationFailed(
     int request_id, const std::string& message) {
   DispatchMessage(render_view(), kShowFailedCmd, request_id, message);
+}
+
+void PresentationMessageListener::OnDisplayAvailableChange(bool available) {
+  DLOG(INFO) << "got display available change";
+  DispatchMessage(render_view(), kDisplayAvailableChangeEvent, 0,
+      base::IntToString(available ? 1 : 0));
 }
 
 // static

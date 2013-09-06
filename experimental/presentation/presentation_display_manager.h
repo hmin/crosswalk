@@ -29,11 +29,12 @@ class PresentationDisplayManager {
     return secondary_displays_;
   }
 
-  gfx::Display GetSecondaryDisplay(int display_id);
+  void EnsureInitialized();
+
+  gfx::Display GetDisplayInfo(int display_id);
 
  private:
   PresentationDisplayManager();
-  void Initialize();
 
   std::vector<gfx::Display> secondary_displays_;
   ObserverList<gfx::DisplayObserver> observers_;

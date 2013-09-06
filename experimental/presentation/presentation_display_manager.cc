@@ -5,6 +5,7 @@
 #include "xwalk/experimental/presentation/presentation_display_manager.h"
 
 #include "base/command_line.h"
+#include "content/public/browser/browser_thread.h"
 #include "ui/gfx/screen.h"
 
 #if defined(TOOLKIT_GTK)
@@ -23,8 +24,6 @@ static PresentationDisplayManager* g_display_manager = NULL;
 PresentationDisplayManager::PresentationDisplayManager() : initialized_(false) {
   DCHECK(g_display_manager == NULL);
   g_display_manager = this;
-
-  Initialize();
 }
 
 PresentationDisplayManager::~PresentationDisplayManager() {
@@ -39,13 +38,21 @@ PresentationDisplayManager* PresentationDisplayManager::Get() {
   return g_display_manager;
 }
 
-#if !defined(OS_ANDROID)
-void PresentationDisplayManager::Initialize() {
+void PresentationDisplayManager::EnsureInitialized() {
+  DCHECK(content::BrowserThread::CurrentlyOn(content::BrowserThread::UI));
+
   if (initialized_)
     return;
 
-  CommandLine* command_line = CommandLine::ForCurrentProcess();
+  initialized_ = true;
+
+#if defined(OS_ANDROID)
+  NOTIMPLEMENTED();
+  return;
+#endif
+
 #if defined(TOOLKIT_GTK)
+  CommandLine* command_line = CommandLine::ForCurrentProcess();
   gfx::Display primary_display =
       gfx::Screen::GetNativeScreen()->GetPrimaryDisplay();
 
@@ -66,13 +73,11 @@ void PresentationDisplayManager::Initialize() {
     AddSecondaryDisplay(display);
   }
 
-  initialized_ = true;
 #else
   NOTIMPLEMENTED() << "Only implemented for GTK";
-#endif  // TOOKKIT_GTK
+#endif
   DLOG(INFO) << "displays size: " << secondary_displays_.size();
 }
-#endif
 
 void PresentationDisplayManager::AddObserver(gfx::DisplayObserver* obs) {
   observers_.AddObserver(obs);
@@ -84,24 +89,29 @@ void PresentationDisplayManager::RemoveObserver(gfx::DisplayObserver* obs) {
 
 void PresentationDisplayManager::AddSecondaryDisplay(
     const gfx::Display& display) {
+  DCHECK(initialized_);
   secondary_displays_.push_back(display);
   FOR_EACH_OBSERVER(gfx::DisplayObserver, observers_, OnDisplayAdded(display));
 }
 
 void PresentationDisplayManager::RemoveSecondaryDisplay(
     const gfx::Display& display) {
+  DCHECK(initialized_);
   std::vector<gfx::Display>::iterator it = secondary_displays_.begin();
   for (; it != secondary_displays_.end(); ++it)
     if (it->id() == display.id()) break;
 
   if (it != secondary_displays_.end()) {
+    secondary_displays_.erase(it);
     FOR_EACH_OBSERVER(gfx::DisplayObserver, observers_,
                       OnDisplayRemoved(display));
-    secondary_displays_.erase(it);
   }
 }
 
-gfx::Display PresentationDisplayManager::GetSecondaryDisplay(int display_id) {
+gfx::Display PresentationDisplayManager::GetDisplayInfo(int display_id) {
+
+  DCHECK(initialized_);
+
   gfx::Display ret;
 
   std::vector<gfx::Display>::iterator it = secondary_displays_.begin();

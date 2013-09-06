@@ -91,4 +91,4 @@ IPC_MESSAGE_ROUTED2(XWalkViewMsg_ShowPresentationSucceeded,
                     int /* request id */,
                     int /* view id */)
 
-
+IPC_MESSAGE_ROUTED1(XWalkViewMsg_DisplayAvailableChange, bool);

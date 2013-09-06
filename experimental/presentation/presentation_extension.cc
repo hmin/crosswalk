@@ -10,6 +10,7 @@
 #include "content/public/browser/browser_thread.h"
 #include "ipc/ipc_message.h"
 #include "xwalk/experimental/presentation/presentation_creator_impl.h"
+#include "xwalk/experimental/presentation/presentation_display_manager.h"
 #include "xwalk/runtime/browser/runtime.h"
 
 using xwalk::Runtime;
@@ -71,6 +72,7 @@ PresentationInstance::PresentationInstance(PresentationExtension* extension,
   const XWalkExtension::PostMessageCallback& post_message)
     : XWalkInternalExtensionInstance(post_message),
       extension_(extension) {
+  InitializeDisplayManagerOnUI();
 }
 
 PresentationInstance::~PresentationInstance() {
@@ -86,6 +88,18 @@ void PresentationInstance::HandleMessage(scoped_ptr<base::Value> msg) {
   }
 
   XWalkInternalExtensionInstance::HandleMessage(msg.Pass());
+}
+
+void PresentationInstance::InitializeDisplayManagerOnUI() {
+  if (!BrowserThread::CurrentlyOn(BrowserThread::UI)) {
+    BrowserThread::PostTask(
+      BrowserThread::UI, FROM_HERE,
+      base::Bind(&PresentationInstance::InitializeDisplayManagerOnUI,
+          base::Unretained(this)));
+    return;
+  }
+
+  PresentationDisplayManager::Get()->EnsureInitialized();
 }
 
 }  // namespace experimental

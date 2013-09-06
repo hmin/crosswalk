@@ -30,9 +30,12 @@ const char* kInvalidAccessError = "InvalidAccessError";
 // There is no available secondary display for use.
 const char* kNotFoundError = "NotFoundError";
 
+bool PresentationCreatorImpl::display_available_ = false;
+
 PresentationCreatorImpl::PresentationCreatorImpl(WebContents* web_contents)
   : WebContentsObserver(web_contents) {
   DLOG(INFO) << "## PresentationCreatorImpl ctor";
+  PresentationDisplayManager::Get()->AddObserver(this);
 }
 
 PresentationCreatorImpl::~PresentationCreatorImpl() {
@@ -47,6 +50,7 @@ PresentationCreatorImpl::~PresentationCreatorImpl() {
   }
 
   presentation_list_.clear();
+  PresentationDisplayManager::Get()->RemoveObserver(this);
 }
 
 bool PresentationCreatorImpl::OnMessageReceived(const IPC::Message& message) {
@@ -58,6 +62,29 @@ bool PresentationCreatorImpl::OnMessageReceived(const IPC::Message& message) {
   IPC_END_MESSAGE_MAP()
   return handled;
 }
+
+void PresentationCreatorImpl::OnDisplayBoundsChanged(
+    const gfx::Display& display) {
+}
+
+void PresentationCreatorImpl::OnDisplayAdded(const gfx::Display& new_display) {
+  if (!display_available_) {
+    DLOG(INFO) << "display added";
+    display_available_ = true;
+    Send(new XWalkViewMsg_DisplayAvailableChange(routing_id(),
+                                                 display_available_));
+  }
+}
+
+void PresentationCreatorImpl::OnDisplayRemoved(const gfx::Display& old_display) {
+  if (display_available_ &&
+      PresentationDisplayManager::Get()->GetSecondaryDisplays().size() == 0) {
+    display_available_ = false;
+    Send(new XWalkViewMsg_DisplayAvailableChange(routing_id(),
+                                                 display_available_));
+  }
+}
+
 
 void PresentationCreatorImpl::OnRequestShowPresentation(
     int request_id, int opener_id, const std::string& url) {

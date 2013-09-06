@@ -55,6 +55,8 @@ class PresentationInstance : public extensions::XWalkInternalExtensionInstance {
                      const std::string& callback_id,
                      base::ListValue* args);
 
+  void InitializeDisplayManagerOnUI();
+
   PresentationExtension* extension_;
 };
 

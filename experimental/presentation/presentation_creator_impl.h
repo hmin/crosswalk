@@ -11,6 +11,9 @@
 #include "base/memory/scoped_ptr.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "googleurl/src/gurl.h"
+#include "ui/gfx/display.h"
+#include "ui/gfx/display_observer.h"
+
 #include "xwalk/experimental/presentation/presentation_delegate.h"
 
 namespace content {
@@ -27,7 +30,8 @@ typedef std::vector<PresentationImpl*> PresentationList;
 // A presentation creator is responsible for the presentation creation requested
 // from the web contents.
 class PresentationCreatorImpl : public PresentationDelegate,
-                           public content::WebContentsObserver {
+                           public content::WebContentsObserver,
+                           public gfx::DisplayObserver {
  public:
   explicit PresentationCreatorImpl(content::WebContents* web_contents);
   virtual ~PresentationCreatorImpl();
@@ -41,6 +45,11 @@ class PresentationCreatorImpl : public PresentationDelegate,
   // WebContentsObserver implementations.
   virtual bool OnMessageReceived(const IPC::Message& message) OVERRIDE;
 
+  // gfx::DisplayObserver implementations.
+  virtual void OnDisplayBoundsChanged(const gfx::Display& display) OVERRIDE;
+  virtual void OnDisplayAdded(const gfx::Display& new_display) OVERRIDE;
+  virtual void OnDisplayRemoved(const gfx::Display& old_display) OVERRIDE;
+
   // PresentationCreator implementations.
   virtual bool CanCreatePresentation(const GURL& url);
   virtual void CreateNewPresentation(int request_id,
@@ -52,6 +61,9 @@ class PresentationCreatorImpl : public PresentationDelegate,
                                  const std::string& url);
 
   PresentationList presentation_list_;
+
+  static bool display_available_;
+
   DISALLOW_COPY_AND_ASSIGN(PresentationCreatorImpl);
 };
 
