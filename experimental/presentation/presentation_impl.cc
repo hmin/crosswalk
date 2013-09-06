@@ -9,6 +9,9 @@
 #include "base/logging.h"
 #include "base/message_loop.h"
 #include "content/public/browser/web_contents.h"
+#include "ui/gfx/display.h"
+#include "ui/gfx/screen.h"
+
 #include "xwalk/experimental/presentation/presentation_delegate.h"
 
 using content::WebContents;
@@ -32,18 +35,43 @@ PresentationImpl::PresentationImpl(WebContents* web_contents,
 }
 
 PresentationImpl::~PresentationImpl() {
-  DLOG(INFO) << "dtor";
+  DLOG(INFO) << "destroy presentation.";
   if (delegate_)
     delegate_->OnPresentationDestroyed(this);
 }
 
 void PresentationImpl::Show() {
-  PlatformCreatePresentation();
-  PlatformShowPresentation();
+#if !defined(OS_ANDROID)
+  if (!window_) {
+    gfx::Screen* screen = gfx::Screen::GetNativeScreen();
+    if (display_id_ != screen->GetPrimaryDisplay().id()) {
+      // TODO: Implement to create window on the secondary display.
+      NOTIMPLEMENTED();
+      return;
+    }
+
+    DCHECK(web_contents_);
+
+    NativeAppWindow::CreateParams params;
+    params.delegate = this;
+    params.web_contents = web_contents_.get();
+    params.bounds = gfx::Rect(0, 0, 640, 480);
+
+    window_ = NativeAppWindow::Create(params);
+  }
+
+  window_->Show();
+#else
+  NOTIMPLEMENTED();
+#endif  // OS_ANDROID
 }
 
 void PresentationImpl::Close() {
-  PlatformClosePresentation();
+#if !defined(OS_ANDROID)
+  window_->Close();
+#else
+  NOTIMPLEMENTED();
+#endif
 }
 
 void PresentationImpl::OnWindowDestroyed() {
@@ -52,13 +80,12 @@ void PresentationImpl::OnWindowDestroyed() {
 }
 
 void PresentationImpl::OnDisplayError() {
-  PlatformClosePresentation();
+  Close();
 }
 
 void PresentationImpl::CloseContents(WebContents* source) {
   DCHECK(source == web_contents_);
-  DLOG(INFO) << "close contents";
-  PlatformClosePresentation();
+  Close();
 }
 
 }  // namespace experimental

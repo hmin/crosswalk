@@ -9,6 +9,8 @@
 #include "content/public/browser/web_contents_delegate.h"
 #include "ui/gfx/native_widget_types.h"
 
+#include "xwalk/runtime/browser/ui/native_app_window.h"
+
 namespace content {
 class WebContents;
 }
@@ -31,7 +33,8 @@ class PresentationDelegate;
 //
 // When the native window gets destroyed, the Presentation will be also deleted,
 // so the client code won't need to delete it by manual.
-class PresentationImpl : public content::WebContentsDelegate {
+class PresentationImpl : public content::WebContentsDelegate,
+                     public xwalk::NativeAppWindowDelegate {
  public:
   static PresentationImpl* Create(content::WebContents* source,
                                   int64 display_id);
@@ -52,8 +55,8 @@ class PresentationImpl : public content::WebContentsDelegate {
   // is called would cause unpredicatable behaviour!.
   void Close();
 
-  // Get called when the native window is destroyed.
-  void OnWindowDestroyed();
+  // NativeAppWindowDelegate impls
+  virtual void OnWindowDestroyed() OVERRIDE;
 
   // Get called when an error occurs on the display used for showing this
   // presentation.
@@ -76,8 +79,11 @@ class PresentationImpl : public content::WebContentsDelegate {
   // The delegate of Presentation. May be NULL.
   PresentationDelegate* delegate_;
 
-  // The native window to hold the |web_contents_|.
+#if !defined(OS_ANDROID)
+  xwalk::NativeAppWindow* window_;
+#else
   gfx::NativeWindow window_;
+#endif
 
   // The display used for showing the presentation window.
   int64 display_id_;

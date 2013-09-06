@@ -8,7 +8,6 @@
     'presentation_display_manager.cc',
     'presentation_display_manager.h',
     'presentation_impl.cc',
-    'presentation_impl_linux.cc',
     'presentation_impl.h',
     'presentation_api.js',
   ],
