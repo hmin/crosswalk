@@ -7,7 +7,9 @@
 #include "content/public/renderer/render_view.h"
 #include "content/public/renderer/render_view_observer.h"
 #include "ipc/ipc_message.h"
+#include "third_party/WebKit/public/web/WebDocument.h"
 #include "third_party/WebKit/public/web/WebFrame.h"
+#include "third_party/WebKit/public/web/WebSecurityOrigin.h"
 #include "third_party/WebKit/public/web/WebView.h"
 #include "xwalk/extensions/common/xwalk_extension_messages.h"
 #include "xwalk/extensions/renderer/xwalk_extension_module.h"
@@ -15,7 +17,10 @@
 
 using content::RenderView;
 using content::RenderViewObserver;
+using WebKit::WebDocument;
 using WebKit::WebFrame;
+using WebKit::WebSecurityOrigin;
+using WebKit::WebString;
 using WebKit::WebView;
 
 namespace xwalk {
@@ -25,12 +30,20 @@ namespace {
 
 const char* kExtensionModuleName = "navigator.presentation";
 
+bool IsProtocolAllowed(const WebString& protocol) {
+  if (protocol == "file")
+    return true;
+  return false;
+}
+
 }  // namespace
 
 class PresentationMessageListener : public RenderViewObserver {
  public:
   PresentationMessageListener(RenderView* render_view);
   virtual ~PresentationMessageListener();
+
+  static void DispatchMessage(RenderView* render_view, const base::Value& msg);
 
  private:
   // RenderViewObserver implementations.
@@ -41,14 +54,11 @@ class PresentationMessageListener : public RenderViewObserver {
   void OnShowPresentationFailed(int request_id,
                                 const std::string& error_message);
 
-  void DispatchMessage(const base::Value& msg);
-
-  XWalkExtensionModule* extension_module_;
   v8::Handle<v8::Context> v8_context_;
 };
 
 PresentationMessageListener::PresentationMessageListener(RenderView* view)
-  : RenderViewObserver(view), extension_module_(NULL) {
+  : RenderViewObserver(view) {
 }
 
 PresentationMessageListener::~PresentationMessageListener() {
@@ -78,7 +88,7 @@ void PresentationMessageListener::OnShowPresentationSucceeded(
   dict.SetString("cmd", "ShowSucceed");
   dict.SetInteger("request_id", request_id);
   dict.SetInteger("view_id", view_id);
-  DispatchMessage(dict);
+  DispatchMessage(render_view(), dict);
 }
 
 void PresentationMessageListener::OnShowPresentationFailed(
@@ -87,11 +97,14 @@ void PresentationMessageListener::OnShowPresentationFailed(
   dict.SetString("cmd", "ShowFailed");
   dict.SetInteger("request_id", request_id);
   dict.SetString("error_message", message);
-  DispatchMessage(dict);
+  DispatchMessage(render_view(), dict);
 }
 
-void PresentationMessageListener::DispatchMessage(const base::Value& message) {
-  WebFrame* frame = render_view()->GetWebView()->mainFrame();
+// static
+void PresentationMessageListener::DispatchMessage(RenderView* render_view,
+    const base::Value& message) {
+  WebFrame* frame = render_view->GetWebView()->mainFrame();
+
   DCHECK(frame);
 
   v8::HandleScope handle_scope;
@@ -100,10 +113,10 @@ void PresentationMessageListener::DispatchMessage(const base::Value& message) {
       XWalkModuleSystem::GetModuleSystemFromContext(context);
   CHECK(module_system);
 
-  extension_module_ = module_system->GetExtensionModule(kExtensionModuleName);
-  CHECK(extension_module_);
+  XWalkExtensionModule* extension_module =
+      module_system->GetExtensionModule(kExtensionModuleName);
 
-  extension_module_->DispatchMessageToListener(context, message);
+  extension_module->DispatchMessageToListener(context, message);
 }
 
 XWalkPresentationModule::XWalkPresentationModule() {
@@ -190,15 +203,34 @@ void XWalkPresentationModule::RequestShowPresentation(
   if (!render_view)
     return;
 
-  int routing_id = render_view->GetRoutingID();
+  // Since the success callback of navigator.requestShow accepts a WindowProxy
+  // object, which means the script access to the presentation browsing context
+  // is require, at least window.postMessage can work. However, there is no
+  // way for cross-process script access. As a result, we have to prevent
+  // showing a cross-origin url as presentation context.
+  GURL url(target_url);
+  WebDocument document = WebFrame::frameForCurrentContext()->document();
+  WebSecurityOrigin opener = document.securityOrigin();
+  WebSecurityOrigin target = WebSecurityOrigin::create(url);
 
-  DLOG(INFO) << "Send IPC message to browser process to show presentation";
-  render_view->Send(
-      new XWalkViewHostMsg_RequestShowPresentation(routing_id,
-                                                   request_id,
-                                                   opener_id,
-                                                   target_url));
-  return;
+  // Only allow the same origin or allowed protocol (e.g. file://).
+  if (opener.canRequest(url) || (opener.protocol() == target.protocol() &&
+      IsProtocolAllowed(opener.protocol()))) {
+    render_view->Send(
+        new XWalkViewHostMsg_RequestShowPresentation(render_view->GetRoutingID(),
+                                                     request_id,
+                                                     opener_id,
+                                                     target_url));
+    return;
+  }
+
+  // Otherwise, notify the opener a security error was occurred.
+  base::DictionaryValue dict;
+  dict.SetString("cmd", "ShowFailed");
+  dict.SetInteger("request_id", request_id);
+  dict.SetString("error_message", "SecurityError");
+
+  PresentationMessageListener::DispatchMessage(render_view, dict);
 }
 
 v8::Handle<v8::Object> XWalkPresentationModule::NewInstance() {

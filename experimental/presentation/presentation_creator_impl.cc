@@ -25,7 +25,9 @@ using content::WebContents;
 namespace xwalk {
 namespace experimental {
 
+// The request to show presentation is denied.
 const char* kInvalidAccessError = "InvalidAccessError";
+// There is no available secondary display for use.
 const char* kNotFoundError = "NotFoundError";
 
 PresentationCreatorImpl::PresentationCreatorImpl(WebContents* web_contents)
