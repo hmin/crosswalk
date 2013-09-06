@@ -4,6 +4,7 @@
 
 #include "xwalk/experimental/presentation/presentation_display_manager.h"
 
+#include "base/command_line.h"
 #include "ui/gfx/screen.h"
 
 #if defined(TOOLKIT_GTK)
@@ -13,6 +14,9 @@
 
 namespace xwalk {
 namespace experimental {
+
+// Use the primary display as presentation display. Mainly for testing. 
+const char* kUsePrimaryDisplay = "use-primary-display";
 
 static PresentationDisplayManager* g_display_manager = NULL;
 
@@ -40,7 +44,7 @@ void PresentationDisplayManager::Initialize() {
   if (initialized_)
     return;
 
-  DLOG(INFO) << "initialize display manager:";
+  CommandLine* command_line = CommandLine::ForCurrentProcess();
 #if defined(TOOLKIT_GTK)
   gfx::Display primary_display =
       gfx::Screen::GetNativeScreen()->GetPrimaryDisplay();
@@ -54,10 +58,11 @@ void PresentationDisplayManager::Initialize() {
   gint num_of_displays = gdk_screen_get_n_monitors(screen);
   for (gint i = 0; i < num_of_displays; ++i) {
     gfx::Display display(i);
-    if (display.IsInternal()) continue;
-    // A display that is not the internal display is treated as secondary
-    // display.
-    secondary_displays_.push_back(display);
+    // If using primary display option is specified via command line, we should
+    // treat the primary display as secondary display.
+    if (!command_line->HasSwitch(kUsePrimaryDisplay) && display.IsInternal())
+      continue;
+
     AddSecondaryDisplay(display);
   }
 
