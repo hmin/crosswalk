@@ -16,7 +16,7 @@
 namespace xwalk {
 namespace experimental {
 
-// Use the primary display as presentation display. Mainly for testing. 
+// Use the primary display as presentation display. Mainly for testing.
 const char* kUsePrimaryDisplay = "use-primary-display";
 
 static PresentationDisplayManager* g_display_manager = NULL;
@@ -38,6 +38,7 @@ PresentationDisplayManager* PresentationDisplayManager::Get() {
   return g_display_manager;
 }
 
+#if !defined(OS_ANDROID)
 void PresentationDisplayManager::EnsureInitialized() {
   DCHECK(content::BrowserThread::CurrentlyOn(content::BrowserThread::UI));
 
@@ -45,11 +46,6 @@ void PresentationDisplayManager::EnsureInitialized() {
     return;
 
   initialized_ = true;
-
-#if defined(OS_ANDROID)
-  NOTIMPLEMENTED();
-  return;
-#endif
 
 #if defined(TOOLKIT_GTK)
   CommandLine* command_line = CommandLine::ForCurrentProcess();
@@ -76,8 +72,8 @@ void PresentationDisplayManager::EnsureInitialized() {
 #else
   NOTIMPLEMENTED() << "Only implemented for GTK";
 #endif
-  DLOG(INFO) << "displays size: " << secondary_displays_.size();
 }
+#endif  // OS_ANDROID
 
 void PresentationDisplayManager::AddObserver(gfx::DisplayObserver* obs) {
   observers_.AddObserver(obs);

@@ -11,6 +11,10 @@
 #include "ui/gfx/display.h"
 #include "ui/gfx/display_observer.h"
 
+#if defined(OS_ANDROID)
+#include <jni.h>
+#endif
+
 namespace xwalk {
 namespace experimental {
 
@@ -41,6 +45,10 @@ class PresentationDisplayManager {
 
   bool initialized_;
 };
+
+#if defined(OS_ANDROID)
+bool RegisterPresentationDisplayManager(JNI* env);
+#endif
 
 }  // namespace xwalk
 }  // namespace experimental

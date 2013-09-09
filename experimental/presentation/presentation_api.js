@@ -101,7 +101,6 @@ extension.setMessageListener(function(msg) {
   }
 })
 
-exports.displayAvailable = _display_available;
 exports.addEventListener = addEventListener;
 exports.removeEventListener = removeEventListener;
 exports.__defineSetter__("on"+DISPLAY_AVAILABLE_CHANGE_EVENT, function(callback) {
@@ -111,8 +110,8 @@ exports.__defineSetter__("on"+DISPLAY_AVAILABLE_CHANGE_EVENT, function(callback)
 	  removeEventListener(DISPLAY_AVAILABLE_CHANGE_EVENT, this.ondisplayavailablechange);
 });
 
-//exports.__defineGetter__("displayAvailable", function() {
-//  return _display_available;
-//});
+exports.__defineGetter__("displayAvailable", function() {
+  return _display_available;
+});
 
 
