@@ -15,6 +15,7 @@
 #include "xwalk/extensions/common/xwalk_extension_messages.h"
 #include "xwalk/extensions/renderer/xwalk_extension_module.h"
 #include "xwalk/extensions/renderer/xwalk_module_system.h"
+#include "xwalk/extensions/renderer/xwalk_remote_extension_runner.h"
 
 using content::RenderView;
 using content::RenderViewObserver;
@@ -29,7 +30,7 @@ namespace extensions {
 
 namespace {
 
-const char* kExtensionModuleName = "navigator.presentation";
+const char* kExtensionModuleName = "navigator.experimental.presentation";
 
 const char* kShowSucceedCmd = "ShowSucceed";
 const char* kShowFailedCmd = "ShowFailed";
@@ -129,7 +130,9 @@ void PresentationMessageListener::DispatchMessage(RenderView* render_view,
   dict.SetInteger("request_id", request_id);
   dict.SetString("data", data);
 
-  extension_module->DispatchMessageToListener(context, dict);
+  XWalkRemoteExtensionRunner::Client* client =
+    static_cast<XWalkRemoteExtensionRunner::Client*>(extension_module);
+  client->HandleMessageFromNative(dict);
 }
 
 XWalkPresentationModule::XWalkPresentationModule() {

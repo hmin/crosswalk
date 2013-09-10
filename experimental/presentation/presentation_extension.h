@@ -25,8 +25,7 @@ class PresentationExtension : public extensions::XWalkInternalExtension,
 
   // XWalkExtension implementation.
   virtual const char* GetJavaScriptAPI() OVERRIDE;
-  virtual extensions::XWalkExtensionInstance* CreateInstance(
-      const extensions::XWalkExtension::PostMessageCallback& post_msg) OVERRIDE;
+  virtual extensions::XWalkExtensionInstance* CreateInstance() OVERRIDE;
 
  private:
   // RuntimeRegistryObserver impls.
@@ -44,8 +43,7 @@ class PresentationExtension : public extensions::XWalkInternalExtension,
 
 class PresentationInstance : public extensions::XWalkInternalExtensionInstance {
  public:
-  PresentationInstance(PresentationExtension* extension,
-      const extensions::XWalkExtension::PostMessageCallback& post_message);
+  PresentationInstance(PresentationExtension* extension);
   virtual ~PresentationInstance();
 
   virtual void HandleMessage(scoped_ptr<base::Value> msg) OVERRIDE;

@@ -28,7 +28,7 @@ using extensions::XWalkExtensionInstance;
 
 PresentationExtension::PresentationExtension()
   : XWalkInternalExtension() {
-  set_name("navigator.presentation");
+  set_name("navigator.experimental.presentation");
   RuntimeRegistry::Get()->AddObserver(this);
 }
 
@@ -59,18 +59,16 @@ void PresentationExtension::OnRuntimeRemoved(Runtime* runtime) {
 void PresentationExtension::OnRuntimeAppIconChanged(Runtime* runtime) {
 }
 
-XWalkExtensionInstance* PresentationExtension::CreateInstance(
-    const XWalkExtension::PostMessageCallback& post_message) {
+XWalkExtensionInstance* PresentationExtension::CreateInstance() {
   DLOG(INFO) << "## new presentation instance is created";
-  return new PresentationInstance(this, post_message);
+  return new PresentationInstance(this);
 }
 
 //////////////////////////////////////////////////////////////////
 //  PresentationInstance
 //////////////////////////////////////////////////////////////////
-PresentationInstance::PresentationInstance(PresentationExtension* extension,
-  const XWalkExtension::PostMessageCallback& post_message)
-    : XWalkInternalExtensionInstance(post_message),
+PresentationInstance::PresentationInstance(PresentationExtension* extension)
+    : XWalkInternalExtensionInstance(),
       extension_(extension) {
   InitializeDisplayManagerOnUI();
 }

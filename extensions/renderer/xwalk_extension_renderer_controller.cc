@@ -18,7 +18,6 @@
 #include "xwalk/extensions/renderer/xwalk_extension_client.h"
 #include "xwalk/extensions/renderer/xwalk_extension_module.h"
 #include "xwalk/extensions/renderer/xwalk_presentation_module.h"
-#include "xwalk/extensions/renderer/xwalk_extension_render_view_handler.h"
 #include "xwalk/extensions/renderer/xwalk_module_system.h"
 #include "xwalk/extensions/renderer/xwalk_remote_extension_runner.h"
 #include "xwalk/extensions/renderer/xwalk_v8tools_module.h"
