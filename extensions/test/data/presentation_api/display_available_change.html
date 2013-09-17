@@ -1,0 +1,28 @@
+<html>
+<head>
+<title></title>
+</head>
+<body>
+<script>
+var presentation = navigator.experimental.presentation;
+
+var availableCount = 0;
+var unavailableCount = 0;
+
+window.onload = function() {
+  presentation.addEventListener("displayavailablechange", function() {
+    if (presentation.displayAvailable) {
+      ++availableCount;
+      document.title = "True:" + availableCount;
+    }
+    else {
+      ++unavailableCount;
+      document.title = "False:" + unavailableCount;
+    }
+    console.log(document.title);
+	});
+}
+
+</script>
+</body>
+</html>

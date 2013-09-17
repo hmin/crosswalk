@@ -116,6 +116,7 @@
       'test/base/xwalk_test_launcher.cc',
     ],
     'includes': [
+      'experimental/presentation/presentation_apitest.gypi',
       'extensions/extensions_browsertests.gypi',
       'xwalk_jsapi.gypi',
     ],
