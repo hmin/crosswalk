@@ -52,6 +52,11 @@ public abstract class XWalkContentsClient extends ContentViewClient {
         }
 
         @Override
+        public void didStartLoading(String url) {
+            onPageStarted(url);
+        }
+
+        @Override
         public void didStopLoading(String url) {
             onPageFinished(url);
         }

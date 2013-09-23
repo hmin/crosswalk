@@ -23,6 +23,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xwalk.runtime.XWalkRuntimeViewProvider;
 
+import org.xwalk.runtime.extension.api.presentation.PresentationExtension;
+
 /**
  * This internal class acts a manager to manage extensions.
  */
@@ -117,6 +119,16 @@ public class XWalkExtensionManager {
         //        Log.e(TAG, "Failed to read js API file of internal extension: Device");
         //    }
         //    new Device(jsApiContent, mExtensionContextImpl);
+        {
+            String jsApiContent = "";
+            try {
+                jsApiContent = getAssetsFileContent(mContext.getAssets(), PresentationExtension.JS_API_PATH);
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to read JS API file for internal extension: " + PresentationExtension.JS_API_PATH);
+            }
+            // Load PresentationExtension as an internal extension.
+            new PresentationExtension(PresentationExtension.NAME, jsApiContent, mExtensionContextImpl);
+        }
     }
 
     private void loadExternalExtensions() {

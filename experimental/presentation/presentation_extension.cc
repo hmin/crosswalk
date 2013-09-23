@@ -31,8 +31,7 @@ using extensions::XWalkExtension;
 using extensions::XWalkExtensionInstance;
 
 PresentationExtension::PresentationExtension()
-  : XWalkInternalExtension(),
-    display_available_(false) {
+  : display_available_(false) {
   set_name("navigator.experimental.presentation");
   PresentationDisplayManager::Get()->AddObserver(this);
   PresentationDisplayManager::Get()->EnsureInitialized();
@@ -79,8 +78,7 @@ void PresentationExtension::OnDisplayAvailabilityChanged(bool is_available) {
 //  PresentationInstance
 //////////////////////////////////////////////////////////////////
 PresentationInstance::PresentationInstance(PresentationExtension* extension)
-    : XWalkInternalExtensionInstance(),
-      extension_(extension) {
+    : extension_(extension) {
   extension_->AddInstance(this);
 }
 
@@ -100,6 +98,9 @@ void PresentationInstance::OnDisplayAvailabilityChanged(bool is_available) {
 
   scoped_ptr<StringValue> message(new StringValue(json));
   PostMessageToJS(scoped_ptr<base::Value>(message.release()));
+}
+
+void PresentationInstance::HandleMessage(scoped_ptr<base::Value> msg) {
 }
 
 void PresentationInstance::HandleSyncMessage(scoped_ptr<base::Value> msg) {

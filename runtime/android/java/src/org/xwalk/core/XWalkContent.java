@@ -245,6 +245,10 @@ public class XWalkContent extends FrameLayout {
         return mSettings;
     }
 
+    public int getRoutingID() {
+        return nativeGetRoutingID(mXWalkContent);
+    }
+
     private native int nativeInit(XWalkWebContentsDelegate webViewContentsDelegate,
             XWalkContentsClientBridge bridge);
 
@@ -253,4 +257,5 @@ public class XWalkContent extends FrameLayout {
     private native void nativeClearCache(int nativeXWalkContent, boolean includeDiskFiles);
     private native String nativeDevToolsAgentId(int nativeXWalkContent);
     private native String nativeGetVersion(int nativeXWalkContent);
+    private native int nativeGetRoutingID(int nativeXWalkContent);
 }

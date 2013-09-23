@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "xwalk/experimental/presentation/presentation_display_manager.h"
-#include "xwalk/extensions/browser/xwalk_extension_internal.h"
+#include "xwalk/extensions/common/xwalk_extension.h"
 
 namespace xwalk {
 namespace experimental {
@@ -21,7 +21,7 @@ class PresentationInstance;
 // might be changed in future after a wider discussion.
 //
 // Presentation API spec: http://otcshare.github.io/presentation-spec/index.html
-class PresentationExtension : public extensions::XWalkInternalExtension,
+class PresentationExtension : public extensions::XWalkExtension,
                            public PresentationDisplayManager::Observer {
  public:
   PresentationExtension();
@@ -45,11 +45,12 @@ class PresentationExtension : public extensions::XWalkInternalExtension,
   bool display_available_;
 };
 
-class PresentationInstance : public extensions::XWalkInternalExtensionInstance {
+class PresentationInstance : public extensions::XWalkExtensionInstance {
  public:
   explicit PresentationInstance(PresentationExtension* extension);
   virtual ~PresentationInstance();
 
+  virtual void HandleMessage(scoped_ptr<base::Value> msg) OVERRIDE;
   virtual void HandleSyncMessage(scoped_ptr<base::Value> msg) OVERRIDE;
 
   void OnDisplayAvailabilityChanged(bool is_available);

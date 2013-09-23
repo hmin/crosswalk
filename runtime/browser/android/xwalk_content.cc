@@ -141,6 +141,11 @@ static jint Init(JNIEnv* env, jobject obj, jobject web_contents_delegate,
   return reinterpret_cast<jint>(xwalk_core_content);
 }
 
+jint XWalkContent::GetRoutingID(JNIEnv* env, jobject obj) {
+  DCHECK(web_contents_.get());
+  return web_contents_->GetRoutingID();
+}
+
 bool RegisterXWalkContent(JNIEnv* env) {
   return RegisterNativesImpl(env) >= 0;
 }
