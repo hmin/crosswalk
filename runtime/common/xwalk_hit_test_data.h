@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef XWALK_RUNTIME_COMMON_ANDROID_XWALK_HIT_TEST_DATA_H_
-#define XWALK_RUNTIME_COMMON_ANDROID_XWALK_HIT_TEST_DATA_H_
+#ifndef XWALK_RUNTIME_COMMON_XWALK_HIT_TEST_DATA_H_
+#define XWALK_RUNTIME_COMMON_XWALK_HIT_TEST_DATA_H_
 
 #include <string>
 
@@ -76,4 +76,4 @@ struct XWalkHitTestData {
 
 }  // namespace xwalk
 
-#endif  // XWALK_RUNTIME_COMMON_ANDROID_XWALK_HIT_TEST_DATA_H_
+#endif  // XWALK_RUNTIME_COMMON_XWALK_HIT_TEST_DATA_H_

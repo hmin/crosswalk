@@ -10,9 +10,7 @@
 #include "third_party/WebKit/public/web/WebSecurityPolicy.h"
 #include "xwalk/application/common/constants.h"
 
-#if defined(OS_ANDROID)
 #include "xwalk/runtime/renderer/xwalk_render_process_observer.h"
-#endif
 
 namespace xwalk {
 
@@ -42,11 +40,9 @@ void XWalkContentRendererClient::RenderThreadStarted() {
   WebKit::WebSecurityPolicy::registerURLSchemeAsSecure(application_scheme);
   WebKit::WebSecurityPolicy::registerURLSchemeAsCORSEnabled(application_scheme);
 
-#if defined(OS_ANDROID)
   content::RenderThread* thread = content::RenderThread::Get();
   xwalk_render_process_observer_.reset(new XWalkRenderProcessObserver);
   thread->AddObserver(xwalk_render_process_observer_.get());
-#endif
 }
 
 void XWalkContentRendererClient::DidCreateScriptContext(

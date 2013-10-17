@@ -4,5 +4,5 @@
 
 // Multiply-included file, hence no include guard.
 
-#include "xwalk/runtime/common/android/xwalk_render_view_messages.h"
+#include "xwalk/runtime/common/xwalk_messages.h"
 

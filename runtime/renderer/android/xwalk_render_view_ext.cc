@@ -26,8 +26,8 @@
 #include "third_party/WebKit/public/web/WebSecurityOrigin.h"
 #include "third_party/WebKit/public/web/WebView.h"
 #include "third_party/skia/include/core/SkPicture.h"
-#include "xwalk/runtime/common/android/xwalk_hit_test_data.h"
-#include "xwalk/runtime/common/android/xwalk_render_view_messages.h"
+#include "xwalk/runtime/common/xwalk_hit_test_data.h"
+#include "xwalk/runtime/common/xwalk_messages.h"
 
 namespace xwalk {
 

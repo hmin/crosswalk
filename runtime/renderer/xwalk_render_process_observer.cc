@@ -7,7 +7,7 @@
 #include "ipc/ipc_message_macros.h"
 #include "third_party/WebKit/public/web/WebCache.h"
 #include "third_party/WebKit/public/web/WebNetworkStateNotifier.h"
-#include "xwalk/runtime/common/android/xwalk_render_view_messages.h"
+#include "xwalk/runtime/common/xwalk_messages.h"
 
 namespace xwalk {
 

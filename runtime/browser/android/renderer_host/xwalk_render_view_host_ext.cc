@@ -13,7 +13,7 @@
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/frame_navigate_params.h"
 #include "xwalk/runtime/browser/runtime_context.h"
-#include "xwalk/runtime/common/android/xwalk_render_view_messages.h"
+#include "xwalk/runtime/common/xwalk_messages.h"
 
 namespace xwalk {
 

@@ -3,23 +3,15 @@
 // found in the LICENSE file.
 
 // Multiply-included file, no traditional include guard.
-#include "xwalk/runtime/common/android/xwalk_hit_test_data.h"
+
 #include "content/public/common/common_param_traits.h"
 #include "ipc/ipc_channel_handle.h"
 #include "ipc/ipc_message_macros.h"
 #include "ipc/ipc_platform_file.h"
+#include "xwalk/runtime/common/xwalk_hit_test_data.h"
+#include "xwalk/runtime/common/xwalk_message_start.h"
 
-// Singly-included section for enums and custom IPC traits.
-#ifndef XWALK_RUNTIME_COMMON_ANDROID_XWALK_RENDER_VIEW_MESSAGES_H_
-#define XWALK_RUNTIME_COMMON_ANDROID_XWALK_RENDER_VIEW_MESSAGES_H_
-
-namespace IPC {
-
-// TODO(upstream): - add enums and custom IPC traits here when needed.
-
-}  // namespace IPC
-
-#endif  // XWALK_RUNTIME_COMMON_ANDROID_XWALK_RENDER_VIEW_MESSAGES_H_
+#define IPC_MESSAGE_START XWalkViewMsgStart
 
 IPC_STRUCT_TRAITS_BEGIN(xwalk::XWalkHitTestData)
   IPC_STRUCT_TRAITS_MEMBER(type)
@@ -28,8 +20,6 @@ IPC_STRUCT_TRAITS_BEGIN(xwalk::XWalkHitTestData)
   IPC_STRUCT_TRAITS_MEMBER(anchor_text)
   IPC_STRUCT_TRAITS_MEMBER(img_src)
 IPC_STRUCT_TRAITS_END()
-
-#define IPC_MESSAGE_START AndroidWebViewMsgStart
 
 //-----------------------------------------------------------------------------
 // RenderView messages
@@ -78,6 +68,8 @@ IPC_MESSAGE_ROUTED1(XWalkViewMsg_SetInitialPageScale, // NOLINT(*)
 IPC_MESSAGE_CONTROL1(XWalkViewMsg_SetJsOnlineProperty,  // NOLINT(*)
                      bool /* network_up */)
 
+#undef IPC_MESSAGE_START
+#define IPC_MESSAGE_START XWalkViewHostMsgStart
 //-----------------------------------------------------------------------------
 // RenderView messages
 // These are messages sent from the renderer to the browser process.
@@ -103,5 +95,3 @@ IPC_MESSAGE_ROUTED0(XWalkViewHostMsg_PictureUpdated) // NOLINT(*)
 // browser to perform synchronous input event filtering.
 IPC_MESSAGE_ROUTED1(XWalkViewHostMsg_DidActivateAcceleratedCompositing, // NOLINT(*)
                     int /* input_handler_id */)
-
-
